@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Makrozyklus Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:   #0D1B2A; --navy2: #162033; --navy3: #1E2D42;
+  --slate:  #2A3F5A; --border:#2E4060; --text:  #E8EDF5; --muted: #7A8FA8;
+  --accent: #4ECDC4;
+  --s-col:#2ECC71; --s-bg:#0D2B1A; --s-mid:#1A4A2A;
+  --u-col:#F39C12; --u-bg:#2B1E08; --u-mid:#4A3010;
+  --h-col:#E74C3C; --h-bg:#2B0F0D; --h-mid:#4A1A18;
+  --w-col:#3498DB; --w-bg:#0D1E2B; --w-mid:#1A3045;
+  --c5:#2ECC71; --c4:#82E0AA; --c3:#F39C12; --c2:#E67E22; --c1:#E74C3C;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;line-height:1.5;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(78,205,196,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(78,205,196,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:0 40px 60px}
+
+/* HEADER */
+header{padding:36px 0 28px;border-bottom:1px solid var(--border);margin-bottom:32px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+header h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,5vw,52px);letter-spacing:3px;line-height:1;margin-bottom:6px}
+header h1 span{color:var(--accent)}
+header p{color:var(--muted);font-size:15px;font-weight:300}
+.upd{font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);text-align:right}
+.upd span{color:var(--accent);display:block}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:32px;border-bottom:1px solid var(--border)}
+.tab{font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:var(--muted);background:none;border:none;padding:10px 20px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;letter-spacing:.5px}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.panel{display:none}
+.panel.on{display:block;animation:fi .3s ease}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* QUADRANT BAR */
+.qbar{display:flex;align-items:center;gap:16px;padding:20px 28px;border-radius:12px;margin-bottom:32px;border:1px solid;transition:all .4s;position:relative;overflow:hidden}
+.qbar::before{content:'';position:absolute;inset:0;opacity:.06;background:radial-gradient(circle at 20% 50%,currentColor,transparent 60%)}
+.qi{font-size:40px;line-height:1;flex-shrink:0}
+.ql{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;line-height:1}
+.qd{font-size:14px;color:var(--muted);margin-top:3px}
+.qsigs{margin-left:auto;display:flex;gap:20px;flex-shrink:0}
+.spill{display:flex;flex-direction:column;align-items:center;gap:4px}
+.spill .sv{font-family:'Space Mono',monospace;font-size:24px;font-weight:700;line-height:1}
+.spill .sl{font-size:12px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+.qs{background:var(--s-bg);border-color:var(--s-mid);color:var(--s-col)}
+.qu{background:var(--u-bg);border-color:var(--u-mid);color:var(--u-col)}
+.qh{background:var(--h-bg);border-color:var(--h-mid);color:var(--h-col)}
+.qw{background:var(--w-bg);border-color:var(--w-mid);color:var(--w-col)}
+
+/* SECTION LABEL */
+.slbl{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin:28px 0 12px;display:flex;align-items:center;gap:10px}
+.slbl::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* INDICATOR GRID */
+.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-bottom:8px}
+.icard{background:var(--navy2);border:1px solid var(--border);border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:12px;transition:border-color .2s}
+.icard:hover{border-color:var(--slate)}
+.itop{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.iname{font-size:15px;font-weight:500;line-height:1.3}
+.icat{font-size:12px;font-family:'Space Mono',monospace;color:var(--muted);white-space:nowrap;flex-shrink:0;padding:2px 7px;background:var(--navy3);border-radius:4px}
+.itog{display:flex;gap:6px}
+.tbtn{flex:1;padding:8px 4px;border-radius:6px;border:1px solid var(--border);background:var(--navy3);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;text-align:center}
+.tbtn:hover{border-color:var(--slate);color:var(--text)}
+.tup{background:#0D2B1A;border-color:var(--s-col);color:var(--s-col)}
+.tmid{background:#2B1E08;border-color:var(--u-col);color:var(--u-col)}
+.tdn{background:#2B0F0D;border-color:var(--h-col);color:var(--h-col)}
+.isigs{display:flex;gap:8px}
+.schip{flex:1;display:flex;flex-direction:column;gap:2px;padding:6px 8px;border-radius:6px;background:var(--navy3);border:1px solid var(--border)}
+.stype{font-size:11px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+.sval{font-family:'Space Mono',monospace;font-weight:700;font-size:15px}
+.sp{color:var(--s-col)}.sn{color:var(--h-col)}.se{color:var(--muted)}
+.isrc{font-size:12px;color:var(--muted)}
+.isrc a{color:var(--accent);text-decoration:none}
+.isrc a:hover{text-decoration:underline}
+
+/* KOMPASS */
+.khead{display:grid;grid-template-columns:1fr repeat(4,110px) 1fr;gap:8px;margin-bottom:8px;padding:0 0 8px;border-bottom:1px solid var(--border)}
+.kha{font-size:13px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+.khs{text-align:center;font-size:15px;font-weight:600;padding:6px 4px;border-radius:6px}
+.khs-s{color:var(--s-col);background:var(--s-bg)}
+.khs-u{color:var(--u-col);background:var(--u-bg)}
+.khs-h{color:var(--h-col);background:var(--h-bg)}
+.khs-w{color:var(--w-col);background:var(--w-bg)}
+.khc{font-size:13px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+.krow{display:grid;grid-template-columns:1fr repeat(4,110px) 1fr;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(46,64,96,.5);transition:background .15s}
+.krow:hover{background:rgba(30,45,66,.5);border-radius:8px;margin:0 -8px;padding:10px 8px}
+.krow:last-child{border-bottom:none}
+.kname{font-size:15px;font-weight:500;display:flex;align-items:center;gap:8px}
+.kname .em{font-size:16px}
+.sc{text-align:center;padding:6px 4px;border-radius:6px;font-size:13px;font-weight:600;transition:all .3s}
+.sc.dim{opacity:.3}
+.sc.act{opacity:1;transform:scale(1.06);box-shadow:0 2px 12px rgba(0,0,0,.4)}
+.sc5{background:rgba(46,204,113,.12);color:var(--c5);border:1px solid rgba(46,204,113,.3)}
+.sc4{background:rgba(130,224,170,.08);color:var(--c4);border:1px solid rgba(130,224,170,.2)}
+.sc3{background:rgba(243,156,18,.08);color:var(--c3);border:1px solid rgba(243,156,18,.2)}
+.sc2{background:rgba(230,126,34,.08);color:var(--c2);border:1px solid rgba(230,126,34,.2)}
+.sc1{background:rgba(231,76,60,.08);color:var(--c1);border:1px solid rgba(231,76,60,.2)}
+.kcmt{font-size:13px;color:var(--muted);font-style:italic;line-height:1.4}
+.ksec{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);padding:20px 0 10px;display:flex;align-items:center;gap:10px}
+.ksec::after{content:'';flex:1;height:1px;background:var(--border)}
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;padding:14px 18px;background:var(--navy2);border:1px solid var(--border);border-radius:10px}
+.li{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.ld{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* ANLEITUNG */
+.anl{max-width:680px;margin:0 auto;padding:8px 0 40px}
+.hstep{display:flex;gap:16px;margin-bottom:24px;align-items:flex-start}
+.hstep:last-child{margin-bottom:0}
+.hnum{width:34px;height:34px;background:var(--accent);color:var(--navy);border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.hnum.alt{background:var(--slate);color:var(--text);font-size:18px}
+.hsc h3{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px}
+.hsc p{font-size:15px;color:var(--muted);line-height:1.6}
+.hsc p strong{color:var(--text)}
+.hdiv{height:1px;background:var(--border);margin:20px 0}
+.hquad{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.hq{padding:10px 14px;border-radius:8px;border:1px solid;font-size:14px}
+.hq-t{font-weight:600;margin-bottom:3px;font-size:15px}
+.hq-s{opacity:.75;font-size:13px}
+.hqs{background:var(--s-bg);border-color:var(--s-mid);color:var(--s-col)}
+.hqu{background:var(--u-bg);border-color:var(--u-mid);color:var(--u-col)}
+.hqh{background:var(--h-bg);border-color:var(--h-mid);color:var(--h-col)}
+.hqw{background:var(--w-bg);border-color:var(--w-mid);color:var(--w-col)}
+.htip{margin-top:24px;padding:14px 18px;background:rgba(78,205,196,.07);border:1px solid rgba(78,205,196,.2);border-radius:8px;font-size:14px;color:var(--muted);line-height:1.6}
+.htip strong{color:var(--accent)}
+.hscale{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.hscale-row{display:flex;align-items:center;gap:10px;font-size:14px}
+.hscale-row span:first-child{width:140px;font-weight:700;flex-shrink:0}
+
+@media(max-width:768px){
+  .khead,.krow{grid-template-columns:1fr repeat(2,90px)}
+  .khs-h,.khs-w,.kcmt{display:none}
+  .qsigs{display:none}
+  .wrap{padding:0 20px 40px}
+}
+
+/* LOGIK TAB */
+.logik-wrap{padding:8px 0 40px}
+.logik-intro{padding:16px 20px;background:rgba(78,205,196,.07);border:1px solid rgba(78,205,196,.2);border-radius:10px;margin-bottom:24px;font-size:15px;color:var(--muted);line-height:1.6}
+.logik-intro strong{color:var(--text)}
+.ltable-wrap{overflow-x:auto}
+.ltable{width:100%;border-collapse:collapse;font-size:14px}
+.ltable thead tr{background:var(--navy3);border-bottom:2px solid var(--border)}
+.ltable th{padding:12px 14px;text-align:left;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);white-space:nowrap}
+.ltable tbody tr{border-bottom:1px solid rgba(46,64,96,.4);transition:background .15s}
+.ltable tbody tr:hover{background:rgba(30,45,66,.6)}
+.lgroup td{background:var(--navy3);padding:10px 14px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-top:1px solid var(--border)}
+.lname{padding:12px 14px;font-weight:500;color:var(--text);font-size:14px;min-width:200px}
+.lcat{padding:12px 8px;font-size:12px;color:var(--muted);white-space:nowrap;font-family:'Space Mono',monospace}
+.lpos{padding:12px 10px;font-family:'Space Mono',monospace;font-weight:700;font-size:13px;color:var(--s-col);white-space:nowrap;text-align:center}
+.lneg{padding:12px 10px;font-family:'Space Mono',monospace;font-weight:700;font-size:13px;color:var(--h-col);white-space:nowrap;text-align:center}
+.lpos-cell{padding:12px 10px;font-family:'Space Mono',monospace;font-weight:700;font-size:13px;color:var(--s-col);white-space:nowrap;text-align:center}
+.lneg-cell{padding:12px 10px;font-family:'Space Mono',monospace;font-weight:700;font-size:13px;color:var(--h-col);white-space:nowrap;text-align:center}
+.lexp{padding:12px 14px;font-size:13px;color:var(--muted);line-height:1.6;min-width:320px}
+.lexp strong{color:var(--text)}
+.lexp em{color:var(--accent);font-style:normal}
+.logik-hint{margin-top:20px;padding:14px 18px;background:rgba(255,230,109,.06);border:1px solid rgba(255,230,109,.2);border-radius:10px;font-size:14px;color:var(--muted);line-height:1.7}
+.logik-hint strong{color:#FFE66D}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--navy3);border:1px solid var(--accent);color:var(--accent);font-family:'Space Mono',monospace;font-size:13px;padding:10px 20px;border-radius:8px;opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;z-index:9999}
+.toast.show{opacity:1;transform:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <h1>MAKRO<span>ZYKLUS</span> DASHBOARD</h1>
+    <p>Wirtschaftsindikatoren → Zyklusphase → Asset-Allokation &nbsp;|&nbsp; Privatanleger Edition</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <button onclick="resetState()" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 14px;background:var(--navy2);border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;transition:all .2s;" onmouseover="this.style.borderColor='var(--h-col)';this.style.color='var(--h-col)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">↺ Zurücksetzen</button>
+    <div class="upd"><span id="dt"></span>Einstellungen werden lokal gespeichert</div>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab on" onclick="sw('ampel')">📊 Indikator-Ampel</button>
+  <button class="tab" onclick="sw('kompass')">🧭 Asset-Kompass</button>
+  <button class="tab" onclick="sw('anleitung')">📖 Anleitung</button>
+  <button class="tab" onclick="sw('logik')">📋 Indikatoren-Logik</button>
+</div>
+
+<!-- TAB 1: AMPEL -->
+<div id="tab-ampel" class="panel on">
+  <div id="qbar" class="qbar qs">
+    <div class="qi" id="qi">🌱</div>
+    <div>
+      <div class="ql" id="ql">FRÜHLING</div>
+      <div class="qd" id="qd">Wachstum ↑ | Inflation ↓ | Erholung / Early Cycle</div>
+    </div>
+    <div class="qsigs">
+      <div class="spill"><div class="sv" id="sw">0</div><div class="sl">Wachstum</div></div>
+      <div class="spill"><div class="sv" id="si">0</div><div class="sl">Inflation</div></div>
+    </div>
+  </div>
+  <div class="slbl">🔮 Vorlaufende Indikatoren</div>
+  <div class="igrid" id="g-lead"></div>
+  <div class="slbl">📈 Gleichlaufende Indikatoren</div>
+  <div class="igrid" id="g-coin"></div>
+  <div class="slbl">🔁 Nachlaufende Indikatoren</div>
+  <div class="igrid" id="g-lag"></div>
+</div>
+
+<!-- TAB 2: KOMPASS -->
+<div id="tab-kompass" class="panel">
+  <div class="legend">
+    <div class="li"><div class="ld" style="background:var(--c5)"></div> ★★★★★ Top – übergewichten</div>
+    <div class="li"><div class="ld" style="background:var(--c4)"></div> ★★★★ Gut – leicht übergewichten</div>
+    <div class="li"><div class="ld" style="background:var(--c3)"></div> ★★★ Neutral – marktgewichten</div>
+    <div class="li"><div class="ld" style="background:var(--c2)"></div> ★★ Schwach – untergewichten</div>
+    <div class="li"><div class="ld" style="background:var(--c1)"></div> ★ Meiden – stark untergewichten</div>
+  </div>
+  <div class="khead">
+    <div class="kha">Asset / Sektor</div>
+    <div class="khs khs-s">🌱 Frühling</div>
+    <div class="khs khs-u">☀️ Sommer</div>
+    <div class="khs khs-h">🍂 Herbst</div>
+    <div class="khs khs-w">❄️ Winter</div>
+    <div class="khc">Kommentar (aktuell)</div>
+  </div>
+  <div class="ksec">📈 Aktien – nach Sektor</div>
+  <div id="k-sek"></div>
+  <div class="ksec">💼 Weitere Asset-Klassen</div>
+  <div id="k-ass"></div>
+</div>
+
+<!-- TAB 3: ANLEITUNG -->
+<div id="tab-anleitung" class="panel">
+  <div class="anl">
+
+    <div class="hstep">
+      <div class="hnum">1</div>
+      <div class="hsc">
+        <h3>Indikatoren recherchieren</h3>
+        <p>Öffne im Tab <strong>📊 Indikator-Ampel</strong> für jeden Indikator den verlinkten Datenlink (z.B. FRED, ISM, BLS). Vergleiche den aktuellen Wert mit dem Wert vor <strong>3–6 Monaten</strong>: Steigt er? Bleibt er gleich? Fällt er?</p>
+      </div>
+    </div>
+
+    <div class="hstep">
+      <div class="hnum">2</div>
+      <div class="hsc">
+        <h3>Trend auswählen – ⬆ Steigt / ➡ Gleich / ⬇ Fällt</h3>
+        <p>Klicke bei jedem Indikator auf den passenden Trend-Button. Das Dashboard berechnet sofort Wachstums- und Inflationspunkte. Die Chips unter jedem Indikator zeigen, wie viele Punkte dieser Indikator gerade beisteuert.</p>
+      </div>
+    </div>
+
+    <div class="hstep">
+      <div class="hnum">3</div>
+      <div class="hsc">
+        <h3>Zyklusphase ablesen</h3>
+        <p>Der farbige Balken oben zeigt deinen aktuellen <strong>Wirtschaftszyklusquadranten</strong>. Es gibt vier Phasen:</p>
+        <div class="hquad">
+          <div class="hq hqs"><div class="hq-t">🌱 Frühling</div><div class="hq-s">Wachstum ↑ · Inflation ↓<br>Erholung / Early Cycle</div></div>
+          <div class="hq hqu"><div class="hq-t">☀️ Sommer</div><div class="hq-s">Wachstum ↑ · Inflation ↑<br>Boom / Late Cycle</div></div>
+          <div class="hq hqh"><div class="hq-t">🍂 Herbst</div><div class="hq-s">Wachstum ↓ · Inflation ↑<br>Stagflation</div></div>
+          <div class="hq hqw"><div class="hq-t">❄️ Winter</div><div class="hq-s">Wachstum ↓ · Inflation ↓<br>Rezession</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hstep">
+      <div class="hnum">4</div>
+      <div class="hsc">
+        <h3>Asset-Kompass aufrufen</h3>
+        <p>Wechsle zum Tab <strong>🧭 Asset-Kompass</strong>. Die aktive Jahreszeitspalte leuchtet auf – dort siehst du, welche Sektoren und Asset-Klassen in dieser Phase historisch am besten abschneiden. Der Kommentar rechts erklärt das Warum.</p>
+      </div>
+    </div>
+
+    <div class="hdiv"></div>
+
+    <div class="hstep">
+      <div class="hnum alt">💡</div>
+      <div class="hsc">
+        <h3>Wie oft aktualisieren?</h3>
+        <p>Einmal im Monat reicht völlig. Ein guter Zeitpunkt ist <strong>Mitte des Monats</strong>, wenn die wichtigsten US-Daten (CPI, PPI, Retail Sales) vorliegen.</p>
+      </div>
+    </div>
+
+    <div class="hstep">
+      <div class="hnum alt">⚖️</div>
+      <div class="hsc">
+        <h3>Interpretation der Punkte</h3>
+        <p><strong>Vorlaufende Indikatoren</strong> geben die Richtung vor, gleichlaufende bestätigen, nachlaufende bestätigen mit Verzögerung. Bei gemischten Signalen zeigt die Mehrheit die Tendenz – eine gewisse Unschärfe ist normal.</p>
+      </div>
+    </div>
+
+    <div class="hstep">
+      <div class="hnum alt">📊</div>
+      <div class="hsc">
+        <h3>Bewertungsskala im Asset-Kompass</h3>
+        <div class="hscale">
+          <div class="hscale-row"><span style="color:var(--c5)">★★★★★ Top</span><span style="color:var(--muted)">Historisch beste Phase – übergewichten</span></div>
+          <div class="hscale-row"><span style="color:var(--c4)">★★★★ Gut</span><span style="color:var(--muted)">Überdurchschnittlich – leicht übergewichten</span></div>
+          <div class="hscale-row"><span style="color:var(--c3)">★★★ Neutral</span><span style="color:var(--muted)">Marktdurchschnitt – neutral gewichten</span></div>
+          <div class="hscale-row"><span style="color:var(--c2)">★★ Schwach</span><span style="color:var(--muted)">Unterdurchschnittlich – untergewichten</span></div>
+          <div class="hscale-row"><span style="color:var(--c1)">★ Meiden</span><span style="color:var(--muted)">Historisch schlechteste Phase – stark untergewichten</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="htip">
+      <strong>⚠️ Hinweis:</strong> Die Bewertungen basieren auf historischen Zyklusmustern (Fidelity Sector Research, Ned Davis Research). Sie dienen ausschließlich der Orientierung – <strong>keine Anlageberatung</strong>. Vergangenheitswerte garantieren keine zukünftige Performance.
+    </div>
+
+  </div>
+</div>
+
+<!-- TAB 4: INDIKATOREN-LOGIK -->
+<div id="tab-logik" class="panel">
+  <div class="logik-wrap">
+
+    <div class="logik-intro">
+      <p>Diese Tabelle zeigt, wie jeder Indikator bewertet wird – aus der <strong>Zyklusphase-Perspektive</strong>: Wir fragen nicht „Ist das gut für Aktien?", sondern „In welcher Phase der Realwirtschaft befinden wir uns gerade?"</p>
+    </div>
+
+    <div class="ltable-wrap">
+      <table class="ltable">
+        <thead>
+          <tr>
+            <th>Indikator</th>
+            <th>Typ</th>
+            <th>⬆ Steigt</th>
+            <th>⬇ Fällt</th>
+            <th>Erklärung (Anfänger)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="lgroup"><td colspan="5">🔮 Vorlaufende Indikatoren – zeigen die Richtung an, bevor die Wirtschaft dreht</td></tr>
+          <tr>
+            <td class="lname">Financial Conditions Index (FCI)</td>
+            <td class="lcat">Vorlaufend</td>
+            <td class="lpos">W+1 I+1</td>
+            <td class="lneg">W−1 I−1</td>
+            <td class="lexp">Ein <em>steigender</em> FCI bedeutet restriktivere Finanzbedingungen (höhere Zinsen, weniger Kredit) → typisch für eine boomende, überhitzte Wirtschaft. Ein <em>fallender</em> FCI entsteht wenn die Fed lockert, weil die Wirtschaft schwächelt → Rezessions-Signal.</td>
+          </tr>
+          <tr>
+            <td class="lname">Geldmenge M2 (Wachstumsrate YoY)</td>
+            <td class="lcat">Vorlaufend</td>
+            <td class="lpos">W+1 I+1</td>
+            <td class="lneg">W−1 I−1</td>
+            <td class="lexp">Wächst M2 stark, ist viel Geld im Umlauf → mehr Konsum, mehr Kredit, mehr Inflation. Schrumpft M2, zieht die Zentralbank Liquidität ab → weniger Wachstum, weniger Inflation.</td>
+          </tr>
+          <tr>
+            <td class="lname">Yield Curve (10J minus 2J)</td>
+            <td class="lcat">Vorlaufend</td>
+            <td class="lpos">W+1</td>
+            <td class="lneg">W−1</td>
+            <td class="lexp">Eine steile (positive) Kurve signalisiert Wachstumserwartungen – Banken können profitabel verleihen, Konjunktur läuft. Eine invertierte (negative) Kurve ist historisch der zuverlässigste Rezessionsindikator. Inflation wird hier nicht bewertet, da die Kurvenform primär Wachstum spiegelt.</td>
+          </tr>
+          <tr>
+            <td class="lname">ISM Manufacturing PMI – New Orders</td>
+            <td class="lcat">Vorlaufend</td>
+            <td class="lpos">W+1 I+1</td>
+            <td class="lneg">W−1 I−1</td>
+            <td class="lexp">Mehr Aufträge = mehr Produktion geplant = Wirtschaft expandiert. Steigende Auftragseingänge erhöhen auch den Preisdruck (mehr Nachfrage → höhere Preise). Unter 50 = Schrumpfung.</td>
+          </tr>
+          <tr>
+            <td class="lname">Conference Board LEI</td>
+            <td class="lcat">Vorlaufend</td>
+            <td class="lpos">W+1</td>
+            <td class="lneg">W−1</td>
+            <td class="lexp">Der LEI fasst 10 Frühindikatoren zusammen (Aktienkurse, Baubeginne, Konsumentenerwartungen usw.). Er zeigt 6–12 Monate im Voraus, wohin die Wirtschaft läuft. Reiner Wachstumsindikator – kein direkter Inflationsbezug.</td>
+          </tr>
+          <tr>
+            <td class="lname">Baubeginne & Baugenehmigungen</td>
+            <td class="lcat">Vorlaufend</td>
+            <td class="lpos">W+1 I+1</td>
+            <td class="lneg">W−1 I−1</td>
+            <td class="lexp">Bauprojekte entstehen, wenn Zinsen niedrig und die Wirtschaft wächst. Steigende Bauaktivität treibt auch Materialpreise (Holz, Stahl, Kupfer) und löhne hoch → Inflationsdruck. Einbrüche signalisieren oft das Ende eines Zyklus.</td>
+          </tr>
+          <tr>
+            <td class="lname">Verbrauchervertrauen – Erwartung</td>
+            <td class="lcat">Vorlaufend</td>
+            <td class="lpos">W+1</td>
+            <td class="lneg">W−1</td>
+            <td class="lexp">Wenn Menschen die Zukunft positiv sehen, geben sie mehr aus → Wachstum. Der Erwartungskomponent ist vorlaufend (wie werden Leute in 6 Monaten kaufen?), nicht inflationär per se.</td>
+          </tr>
+
+          <tr class="lgroup"><td colspan="5">📈 Gleichlaufende Indikatoren – beschreiben den aktuellen Zustand der Wirtschaft</td></tr>
+          <tr>
+            <td class="lname">BIP-Wachstum (real, QoQ)</td>
+            <td class="lcat">Gleichlaufend</td>
+            <td class="lpos">W+1</td>
+            <td class="lneg">W−1</td>
+            <td class="lexp">Das BIP ist die direkteste Messung wirtschaftlicher Aktivität. Wächst es, expandiert die Wirtschaft. Real bedeutet inflationsbereinigt – daher kein Inflationspunkt (Inflation ist bereits herausgerechnet).</td>
+          </tr>
+          <tr>
+            <td class="lname">Industrieproduktion (MoM/YoY)</td>
+            <td class="lcat">Gleichlaufend</td>
+            <td class="lpos">W+1 I+1</td>
+            <td class="lneg">W−1 I−1</td>
+            <td class="lexp">Mehr Produktion = höhere Kapazitätsauslastung = steigende Löhne und Rohstoffpreise → Inflation. Sinkende Produktion = Überkapazitäten, Preisdruck fällt.</td>
+          </tr>
+          <tr>
+            <td class="lname">Einzelhandelsumsätze (real)</td>
+            <td class="lcat">Gleichlaufend</td>
+            <td class="lpos">W+1 I+1</td>
+            <td class="lneg">W−1 I−1</td>
+            <td class="lexp">Hohe Umsätze zeigen starke Konsumnachfrage. Starke Nachfrage bei knappem Angebot treibt Preise. Einbrüche im Konsum dämpfen Wachstum und Inflation gleichzeitig.</td>
+          </tr>
+          <tr>
+            <td class="lname">Non-Farm Payrolls / Beschäftigung</td>
+            <td class="lcat">Gleichlaufend</td>
+            <td class="lpos">W+1 I+1</td>
+            <td class="lneg">W−1 I−1</td>
+            <td class="lexp">Mehr Jobs = mehr Einkommen = mehr Konsum = Wachstum. Gleichzeitig führt Vollbeschäftigung zu Lohndruck → Inflation. Jobverluste dämpfen beides.</td>
+          </tr>
+          <tr>
+            <td class="lname">Persönliche Einkommen & PCE</td>
+            <td class="lcat">Gleichlaufend</td>
+            <td class="lpos">W+1 I+1</td>
+            <td class="lneg">W−1 I−1</td>
+            <td class="lexp">Steigende Einkommen finanzieren mehr Ausgaben (PCE = Fed's bevorzugter Inflationsmaßstab). Hohe PCE-Werte = Fed schaut genau hin. Sinkende Einkommen = weniger Nachfrage, weniger Inflation.</td>
+          </tr>
+          <tr>
+            <td class="lname">Frachtindex (Cass / Baltic Dry)</td>
+            <td class="lcat">Gleichlaufend</td>
+            <td class="lpos">W+1 I+1</td>
+            <td class="lneg">W−1 I−1</td>
+            <td class="lexp">Hohe Frachtkosten = viele Waren werden transportiert = Wirtschaft läuft. Frachtpreise steigen auch bei Nachfrageüberhang → Inflationsdruck. Ein Einbruch (wie 2008, 2020) signalisiert wirtschaftliche Vollbremsung.</td>
+          </tr>
+
+          <tr class="lgroup"><td colspan="5">🔁 Nachlaufende Indikatoren – bestätigen den Zyklus mit Verzögerung</td></tr>
+          <tr>
+            <td class="lname">Arbeitslosenquote</td>
+            <td class="lcat">Nachlaufend</td>
+            <td class="lneg-cell">W−1</td>
+            <td class="lpos-cell">W+1</td>
+            <td class="lexp"><strong>Invertiert bewertet:</strong> Steigende Arbeitslosigkeit = Abschwung (W−1). Sinkende Arbeitslosigkeit = Aufschwung (W+1). Kein Inflationspunkt, da Arbeitslosigkeit primär Wachstum spiegelt – erst Lohndruck führt zu Inflation (separat erfasst).</td>
+          </tr>
+          <tr>
+            <td class="lname">Kern-CPI / Kern-PCE (YoY)</td>
+            <td class="lcat">Nachlaufend</td>
+            <td class="lpos">I+1</td>
+            <td class="lneg">I−1</td>
+            <td class="lexp">Der direkteste Inflationsindikator. Steigt er, ist Inflation real vorhanden – kein Wachstumspunkt, da hohe Inflation allein nicht bedeutet, dass die Wirtschaft gut läuft (Stagflation möglich). Fällt er, beruhigt sich der Preisdruck.</td>
+          </tr>
+          <tr>
+            <td class="lname">Kreditausfälle / Delinquency Rates</td>
+            <td class="lcat">Nachlaufend</td>
+            <td class="lneg-cell">W−1</td>
+            <td class="lpos-cell">W+1</td>
+            <td class="lexp"><strong>Invertiert bewertet:</strong> Steigende Ausfälle = Haushalte und Unternehmen können Schulden nicht bedienen = Abschwung. Sinkende Ausfälle = Kreditqualität gut = Wachstum. Kein Inflationsbezug.</td>
+          </tr>
+          <tr>
+            <td class="lname">Unit Labor Costs (Lohnstückkosten)</td>
+            <td class="lcat">Nachlaufend</td>
+            <td class="lpos">I+1</td>
+            <td class="lneg">I−1</td>
+            <td class="lexp">Steigen die Kosten pro produzierter Einheit, gibt das Unternehmen das an Kunden weiter → Inflation. Reiner Inflationsindikator – kein Wachstumspunkt, da hohe Lohnkosten auch Margen drücken können.</td>
+          </tr>
+          <tr>
+            <td class="lname">Gewerbeimmobilienpreise</td>
+            <td class="lcat">Nachlaufend</td>
+            <td class="lpos">W+1 I+1</td>
+            <td class="lneg">W−1 I−1</td>
+            <td class="lexp">Steigende Gewerbeimmobilienpreise zeigen hohe Nachfrage nach Büros, Lagern, Geschäften → Wirtschaft boomt. Sie bestätigen auch allgemeinen Preisauftrieb. Einbrüche (wie post-Covid) signalisieren Strukturschwäche.</td>
+          </tr>
+          <tr>
+            <td class="lname">Unternehmensgewinne S&P500 (EPS YoY)</td>
+            <td class="lcat">Nachlaufend</td>
+            <td class="lpos">W+1</td>
+            <td class="lneg">W−1</td>
+            <td class="lexp">Steigende Gewinne bestätigen, dass Unternehmen gut verkaufen und Margen halten → Wirtschaft wächst. Kein Inflationspunkt: Gewinnwachstum allein sagt wenig über Preisniveau. Einbrechende Gewinne sind oft das späte Signal einer Rezession.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="logik-hint">
+      <strong>💡 Warum sind manche Indikatoren "invertiert"?</strong><br>
+      Bei der Arbeitslosenquote und den Kreditausfällen gilt: <em>Steigen</em> diese Werte, ist das <em>schlecht</em> für die Wirtschaft – daher W−1 wenn steigend. Das ist das Gegenteil der meisten anderen Indikatoren, bei denen "steigend = Wachstum".
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /wrap -->
+<script>
+// ── DATEN ──────────────────────────────────────
+const IND = [
+  ["Financial Conditions Index (FCI)",      "lead",+1,+1,0,0,-1,-1,"FRED: NFCI","https://fred.stlouisfed.org/series/NFCI"],
+  ["Geldmenge M2 (Wachstumsrate YoY)",      "lead",+1,+1,0,0,-1,-1,"FRED: M2SL","https://fred.stlouisfed.org/series/M2SL"],
+  ["Yield Curve (10J minus 2J)",             "lead",+1, 0,0,0,-1, 0,"FRED: T10Y2Y","https://fred.stlouisfed.org/series/T10Y2Y"],
+  ["ISM Manufacturing PMI – New Orders",    "lead",+1,+1,0,0,-1,-1,"ismworld.org","https://www.ismworld.org/supply-management-news-and-reports/reports/ism-report-on-business/pmi/"],
+  ["Conference Board LEI",                  "lead",+1, 0,0,0,-1, 0,"conference-board.org","https://www.conference-board.org/topics/us-leading-indicators"],
+  ["Baubeginne & Baugenehmigungen",         "lead",+1,+1,0,0,-1,-1,"census.gov","https://www.census.gov/construction/nrc/index.html"],
+  ["Verbrauchervertrauen – Erwartung",      "lead",+1, 0,0,0,-1, 0,"Univ. Michigan","https://data.sca.isr.umich.edu/"],
+  ["BIP-Wachstum (real, QoQ)",              "coin",+1, 0,0,0,-1, 0,"BEA: GDP","https://www.bea.gov/data/gdp/gross-domestic-product"],
+  ["Industrieproduktion (MoM/YoY)",         "coin",+1,+1,0,0,-1,-1,"FRED: INDPRO","https://fred.stlouisfed.org/series/INDPRO"],
+  ["Einzelhandelsumsätze (real)",           "coin",+1,+1,0,0,-1,-1,"census.gov/retail","https://www.census.gov/retail/index.html"],
+  ["Non-Farm Payrolls / Beschäftigung",     "coin",+1,+1,0,0,-1,-1,"BLS: CES","https://www.bls.gov/ces/"],
+  ["Persönliche Einkommen & PCE",           "coin",+1,+1,0,0,-1,-1,"BEA: PCE","https://www.bea.gov/data/consumer-spending/main"],
+  ["Frachtindex (Cass / Baltic Dry)",       "coin",+1,+1,0,0,-1,-1,"Cass Freight","https://www.cassinfo.com/freight-audit-payment/cass-transportation-indexes/cass-freight-index"],
+  ["Arbeitslosenquote",                     "lag", -1, 0,0,0,+1, 0,"BLS: CPS","https://www.bls.gov/cps/"],
+  ["Kern-CPI / Kern-PCE (YoY)",             "lag",  0,+1,0,0, 0,-1,"BLS: CPI","https://www.bls.gov/cpi/"],
+  ["Kreditausfälle / Delinquency Rates",    "lag", -1, 0,0,0,+1, 0,"FRED: Delinquency","https://fred.stlouisfed.org/series/DRCCLACBS"],
+  ["Unit Labor Costs (Lohnstückkosten)",    "lag",  0,+1,0,0, 0,-1,"BLS: Labor Costs","https://www.bls.gov/lpc/"],
+  ["Gewerbeimmobilienpreise",               "lag", +1,+1,0,0,-1,-1,"Green Street","https://www.greenstreet.com/"],
+  ["Unternehmensgewinne S&P500 (EPS YoY)", "lag", +1, 0,0,0,-1, 0,"FactSet Earnings","https://insight.factset.com/topic/earnings"],
+];
+
+// [Name, Emoji, F,S,H,W, Komm-F, Komm-S, Komm-H, Komm-W]
+const SEK = [
+  ["Informationstechnologie","💻",5,4,1,2,"Beste Phase: sinkende Zinsen beflügeln Bewertungen","Noch gut: Nachfrage hoch, aber steigende Zinsen belasten","Meiden: Bewertungen unter Druck, Zinsanstieg schadet","Selektiv: Qualitätsaktien halten, aber Vorsicht"],
+  ["Finanzen (Banken, Vers.)","🏦",4,5,2,1,"Gut: Kreditwachstum beginnt, Zinsen noch niedrig","Top: Steile Kurve, starke Margen, hohes Kreditwachstum","Schwach: Kreditausfälle steigen, Konjunktur dreht","Meiden: Hohe Ausfallraten, Kreditklemme möglich"],
+  ["Industrie & Zykliker","🏭",4,5,1,1,"Gut: Auftragseingang steigt, Kapazitäten werden aufgebaut","Top: Volle Auslastung, Preissetzungsmacht, starke Gewinne","Meiden: Aufträge brechen ein, Margen unter Druck","Meiden: Tiefstzyklus, Überkapazitäten"],
+  ["Nicht-Basiskonsumgüter","🛍️",5,3,1,1,"Top: Konsumlaune steigt, Realeinkommen erholen sich","Neutral: Konsum gut, aber Inflation frisst Kaufkraft","Meiden: Konsumenten sparen, Umsätze brechen ein","Meiden: Arbeitslosigkeit hoch, Konsumzurückhaltung"],
+  ["Energie (Öl & Gas)","⛽",1,5,5,1,"Meiden: Nachfrage noch schwach, Preise moderat","Top: Höchste Nachfrage + Inflation = Preisexplosion","Top: Stagflation = Öl als Inflationsschutz","Meiden: Nachfrage kollabiert, Rohstoffpreise fallen"],
+  ["Rohstoffe & Materialien","⛏️",2,5,4,1,"Neutral: Eher später Frühling / früher Sommer relevant","Top: Industrienachfrage + Inflation = Preisboom","Gut: Inflation schützt, aber Nachfrage schwächer","Meiden: Nachfrage bricht weg, Überangebot"],
+  ["Gesundheit & Pharma","💊",3,2,3,5,"Neutral: Defensiv, aber nicht die Outperformer-Phase","Schwach: Zyklische Sektoren dominieren","Neutral: Defensive Qualitäten, Inflation drückt","Top: Sicherer Hafen, nicht-zyklische Nachfrage"],
+  ["Basiskonsumgüter","🛒",2,2,3,5,"Neutral: Defensiv, aber Wachstumssektoren dominieren","Schwach: Günstigere Sektoren performen besser","Gut: Preisüberwälzung möglich, stabile Nachfrage","Top: Nicht-zyklisch, Dividenden, sicherer Hafen"],
+  ["Versorger","💡",3,1,2,4,"Neutral: Anleiheersatz, aber kein Wachstumssektor","Meiden: Steigende Zinsen machen Anleihen attraktiver","Neutral: Defensive Qualität, aber Kostendruck","Gut: Stabile Cashflows, hohe Dividenden"],
+  ["Immobilien & REITs","🏘️",4,1,1,3,"Gut: Sinkende Zinsen + Wirtschaft erholt sich","Meiden: Steigende Zinsen belasten Bewertungen stark","Meiden: Zinsen hoch + Wirtschaft schwächer = Doppeldruck","Neutral: Zinsen fallen → Erleichterung"],
+  ["Kommunikation & Medien","📡",4,3,2,2,"Gut: Wachstumsorientiert, profitiert von Zinssenkungserwartung","Neutral: Gemischt – defensiv und zyklisch","Schwach: Werbebudgets werden gekürzt","Schwach: Konjunktursensitiver Teil leidet"],
+];
+
+const ASS = [
+  ["Aktien allgemein (Breit)","📈",4,4,2,1,"Gut: Early-Cycle-Rally beginnt, günstige Bewertungen","Gut: Gewinne stark, aber Spätphase nähert sich","Schwach: Gewinnrevisionen negativ, Risiko steigt","Meiden: Rezession, Gewinne brechen ein"],
+  ["Staatsanleihen (10J+)","📜",4,1,2,5,"Gut: Inflation fällt → Anleihepreise steigen","Meiden: Steigende Inflation drückt Anleihepreise","Neutral: Inflation hoch, aber Flucht in Sicherheit","Top: Deflation/Disinflation, Zinsen fallen stark"],
+  ["Unternehmensanleihen (IG)","🏢",3,3,2,3,"Gut: Spreads sinken, Wirtschaft erholt sich","Gut: Starke Bilanzen, aber Zinsen steigen","Schwach: Spreads weiten sich, Ausfallrisiko steigt","Neutral: Spreads weit, aber Zinsrückgang stützt"],
+  ["High-Yield-Anleihen","⚡",4,3,1,1,"Gut: Spreads sinken, Risikobereitschaft steigt","Neutral: Noch OK, aber Zinslast steigt","Meiden: Ausfallraten steigen schnell","Meiden: Hohe Ausfälle, kein Kapitalmarkt"],
+  ["Gold","🥇",3,2,5,4,"Neutral: Zinsen fallen → positiv, aber Risikobereitschaft steigt","Schwach: Reale Zinsen steigen → Gold unter Druck","Top: Inflationsschutz + Stagflationsangst = beste Phase","Gut: Deflationsangst → Flucht in sicheren Hafen"],
+  ["Rohstoffe (Öl, Kupfer, Agrar)","🛢️",2,5,4,1,"Neutral: Nachfrage beginnt zu steigen, noch kein Boom","Top: Maximale Nachfrage + Inflation = Preisexplosion","Gut: Inflation schützt, aber Nachfrage schwächer","Meiden: Nachfrage bricht weg, Preise fallen"],
+  ["Cash & Geldmarkt","💵",2,3,4,3,"Wenig attraktiv: Zinsen fallen, bessere Alternativen","Neutral: Hohe Zinsen, aber Opportunitätskosten","Gut: Kapital schützen, hohe Kurzfristzinsen","Neutral: Zinsen fallen, aber Sicherheit wichtig"],
+  ["Kryptowährungen (Bitcoin)","₿",3,2,1,1,"Neutral/Spekulativ: Risikobereitschaft steigt, aber volatil","Schwach: Liquiditätsentzug durch Zinserhöhungen","Meiden: Risikoaversion + Liquiditätsabzug","Meiden: Risiko-Off, Korrelation mit Aktien"],
+];
+
+// ── STATE & LOCALSTORAGE ───────────────────────
+const STORAGE_KEY = 'makro_v1';
+const ST = {};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const p = JSON.parse(saved);
+      IND.forEach((_,i) => { ST[i] = p[i] || 'mid'; });
+      return true;
+    }
+  } catch(e) {}
+  IND.forEach((_,i) => { ST[i] = 'mid'; });
+  return false;
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(ST)); } catch(e) {}
+  showToast();
+}
+
+function resetState() {
+  if (!confirm('Alle Indikatoren zurücksetzen?')) return;
+  IND.forEach((_,i) => { ST[i] = 'mid'; });
+  localStorage.removeItem(STORAGE_KEY);
+  renderInds();
+  update();
+  showToast('🔄 Zurückgesetzt');
+}
+
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) { t = document.createElement('div'); t.id='toast'; document.body.appendChild(t); }
+  t.textContent = msg || '💾 Gespeichert';
+  t.className = 'toast show';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── CALC ───────────────────────────────────────
+function calc() {
+  let w=0,inf=0;
+  IND.forEach(([,,wu,iu,we,ie,wd,id],i)=>{
+    const t=ST[i];
+    if(t==='up'){w+=wu;inf+=iu}
+    else if(t==='mid'){w+=we;inf+=ie}
+    else{w+=wd;inf+=id}
+  });
+  return{w,inf};
+}
+
+function quad(w,i){
+  if(w>0&&i<=0)return'S';
+  if(w>0&&i>0) return'U';
+  if(w<=0&&i>0)return'H';
+  return'W';
+}
+
+const QI={
+  S:{icon:'🌱',lbl:'FRÜHLING',desc:'Wachstum ↑  |  Inflation ↓  |  Erholung / Early Cycle',cls:'qs',s:'F'},
+  U:{icon:'☀️',lbl:'SOMMER',  desc:'Wachstum ↑  |  Inflation ↑  |  Boom / Late Cycle',      cls:'qu',s:'S'},
+  H:{icon:'🍂',lbl:'HERBST',  desc:'Wachstum ↓  |  Inflation ↑  |  Stagflation',             cls:'qh',s:'H'},
+  W:{icon:'❄️',lbl:'WINTER',  desc:'Wachstum ↓  |  Inflation ↓  |  Rezession',              cls:'qw',s:'W'},
+};
+const SI={F:0,S:1,H:2,W:3};
+const SL={5:'★★★★★ Top',4:'★★★★ Gut',3:'★★★ Neutral',2:'★★ Schwach',1:'★ Meiden'};
+const SC={5:'sc5',4:'sc4',3:'sc3',2:'sc2',1:'sc1'};
+const CL={lead:'Vorlaufend',coin:'Gleichlaufend',lag:'Nachlaufend'};
+const GID={lead:'g-lead',coin:'g-coin',lag:'g-lag'};
+
+// ── RENDER CARD ────────────────────────────────
+function card([name,cat,wu,iu,we,ie,wd,id,sn,su],i){
+  const t=ST[i],w=t==='up'?wu:t==='down'?wd:we,inf=t==='up'?iu:t==='down'?id:ie;
+  const wc=w>0?'sp':w<0?'sn':'se', ic=inf>0?'sp':inf<0?'sn':'se';
+  return`<div class="icard">
+    <div class="itop"><div class="iname">${name}</div><div class="icat">${CL[cat]}</div></div>
+    <div class="itog">
+      <button class="tbtn${t==='up'?' tup':''}" onclick="setT(${i},'up')">⬆ Steigt</button>
+      <button class="tbtn${t==='mid'?' tmid':''}" onclick="setT(${i},'mid')">➡ Gleich</button>
+      <button class="tbtn${t==='down'?' tdn':''}" onclick="setT(${i},'down')">⬇ Fällt</button>
+    </div>
+    <div class="isigs">
+      <div class="schip"><div class="stype">Wachstum</div><div class="sval ${wc}">${w>0?'+'+w:w}</div></div>
+      <div class="schip"><div class="stype">Inflation</div><div class="sval ${ic}">${inf>0?'+'+inf:inf}</div></div>
+    </div>
+    <div class="isrc">📎 <a href="${su}" target="_blank">${sn}</a></div>
+  </div>`;
+}
+
+function renderInds(){
+  const g={lead:[],coin:[],lag:[]};
+  IND.forEach((d,i)=>g[d[1]].push([d,i]));
+  ['lead','coin','lag'].forEach(k=>{
+    document.getElementById(GID[k]).innerHTML=g[k].map(([d,i])=>card(d,i)).join('');
+  });
+}
+
+// ── UPDATE ─────────────────────────────────────
+function update(){
+  const{w,inf}=calc();
+  const q=quad(w,inf),qi=QI[q];
+  const bar=document.getElementById('qbar');
+  bar.className=`qbar ${qi.cls}`;
+  document.getElementById('qi').textContent=qi.icon;
+  document.getElementById('ql').textContent=qi.lbl;
+  document.getElementById('qd').textContent=qi.desc;
+  const we=document.getElementById('sw'),ie=document.getElementById('si');
+  we.textContent=(w>0?'+':'')+w;
+  ie.textContent=(inf>0?'+':'')+inf;
+  we.style.color=w>0?'var(--s-col)':w<0?'var(--h-col)':'var(--muted)';
+  ie.style.color=inf>0?'var(--u-col)':inf<0?'var(--w-col)':'var(--muted)';
+  renderKompass(qi.s);
+}
+
+// ── KOMPASS ────────────────────────────────────
+function krow([name,em,f,s,h,w,cf,cs,ch,cw],season){
+  const scores=[f,s,h,w],cmts=[cf,cs,ch,cw],si=SI[season];
+  const cells=scores.map((sc,idx)=>`<div class="sc ${SC[sc]} ${idx===si?'act':'dim'}">${SL[sc]}</div>`).join('');
+  return`<div class="krow"><div class="kname"><span class="em">${em}</span>${name}</div>${cells}<div class="kcmt">${cmts[si]}</div></div>`;
+}
+
+function renderKompass(s){
+  document.getElementById('k-sek').innerHTML=SEK.map(r=>krow(r,s)).join('');
+  document.getElementById('k-ass').innerHTML=ASS.map(r=>krow(r,s)).join('');
+}
+
+// ── INTERAKTION ────────────────────────────────
+function setT(idx,val){
+  ST[idx]=val;
+  const ind=IND[idx],g=document.getElementById(GID[ind[1]]);
+  const cards=g.querySelectorAll('.icard');
+  let pos=0;
+  IND.forEach((d,i)=>{if(i<idx&&d[1]===ind[1])pos++;});
+  if(cards[pos])cards[pos].outerHTML=card(ind,idx);
+  update();
+  saveState();
+}
+
+function sw(name){
+  const names=['ampel','kompass','anleitung','logik'];
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',names[i]===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.getElementById('tab-'+name).classList.add('on');
+}
+
+// ── INIT ───────────────────────────────────────
+const now=new Date();
+document.getElementById('dt').textContent=now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})+' · ';
+loadState();
+renderInds();
+update();
+</script>
+</body>
+</html>
