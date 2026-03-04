@@ -538,6 +538,93 @@
       line-height: 1.7;
     }
 
+    /* ─── MENTORTOOLS BOX ─── */
+    .mentortools-box {
+      background: linear-gradient(135deg, #0d2137 0%, #0d1a2e 50%, #1a0d2e 100%);
+      border: 1px solid rgba(88, 166, 255, 0.25);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-top: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .mentortools-box::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(88,166,255,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .mentortools-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: center;
+    }
+    .mentortools-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent-blue);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .mentortools-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+      line-height: 1.3;
+    }
+    .mentortools-text {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 1.25rem;
+    }
+    .btn-mentortools {
+      display: inline-block;
+      background: linear-gradient(135deg, #1f6feb, #388bfd);
+      color: white;
+      text-decoration: none;
+      padding: 0.85rem 1.75rem;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-mentortools:hover {
+      background: linear-gradient(135deg, #388bfd, #58a6ff);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(31, 111, 235, 0.35);
+    }
+    .mentortools-features {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+    .mt-feature {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+    .mt-check {
+      color: var(--accent-green);
+      font-weight: 700;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+    @media (max-width: 600px) {
+      .mentortools-inner { grid-template-columns: 1fr; gap: 1.25rem; }
+    }
+
     /* ─── CTA ─── */
     .cta-box {
       background: linear-gradient(135deg, #1a2744, #1a1f2e);
@@ -968,10 +1055,33 @@
       <p>Diese Empfehlung ist eine <strong>grobe Orientierungshilfe</strong> und stellt keine Anlageberatung im rechtlichen Sinne dar. Jede Investitionsentscheidung liegt in deiner eigenen Verantwortung. Bitte informiere dich selbst oder konsultiere einen zugelassenen Finanzberater, bevor du Entscheidungen triffst. Vergangene Renditen sind keine Garantie für zukünftige Ergebnisse.</p>
     </div>
 
+    <!-- Mentortools CTA -->
+    <div class="mentortools-box">
+      <div class="mentortools-inner">
+        <div class="mentortools-left">
+          <div class="mentortools-eyebrow">Meine Kurse &amp; Community</div>
+          <h3 class="mentortools-title">Bereit für den nächsten Schritt?</h3>
+          <p class="mentortools-text">In meiner Mitglieder-Community lernst du, wie du dieses Portfolio selbst aufbaust, analysierst und langfristig pflegst – mit konkreten Anleitungen, Live-Analysen und direktem Austausch.</p>
+          <a href="https://meine-geldseite.app.mentortools.com/app/login/?returnUrl=%2F" target="_blank" rel="noopener noreferrer" class="btn-mentortools">
+            Zur Mitglieder-Community →
+          </a>
+        </div>
+        <div class="mentortools-right">
+          <div class="mentortools-features">
+            <div class="mt-feature"><span class="mt-check">✓</span> Schritt-für-Schritt Anleitungen</div>
+            <div class="mt-feature"><span class="mt-check">✓</span> Live-Marktanalysen</div>
+            <div class="mt-feature"><span class="mt-check">✓</span> Portfolio-Aufbau Kurse</div>
+            <div class="mt-feature"><span class="mt-check">✓</span> Direkte Community &amp; Support</div>
+            <div class="mt-feature"><span class="mt-check">✓</span> ETF &amp; Aktien Strategien</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- CTA -->
     <div class="cta-box">
-      <h3>Möchtest du tiefer einsteigen?</h3>
-      <p>Lerne in meinen Kursen und auf YouTube, wie du dein Portfolio selbst analysierst, optimierst und langfristig aufbaust.</p>
+      <h3>Möchtest du es nochmal versuchen?</h3>
+      <p>Verändere deine Angaben und sieh, wie sich dein Portfolio-Profil verschiebt.</p>
       <button class="btn-restart" onclick="restartQuiz()">🔄 Neu berechnen</button>
     </div>
   </div>
