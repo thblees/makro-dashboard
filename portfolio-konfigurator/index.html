@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mein Portfolio-Konfigurator | Kasseltrader</title>
+  <meta name="description" content="Beantworte ein paar einfache Fragen und erhalte deine persönliche Portfolio-Empfehlung – kostenlos und individuell." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg-dark: #0d1117;
+      --bg-card: #161b22;
+      --bg-card-hover: #1c2330;
+      --border: #30363d;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #484f58;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #f0883e;
+      --accent-gold: #d29922;
+      --accent-purple: #bc8cff;
+      --accent-red: #f85149;
+      --accent-teal: #39d353;
+      --gradient-start: #1a1f2e;
+      --gradient-end: #0d1117;
+      --progress-bg: #21262d;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ─── HEADER ─── */
+    .site-header {
+      background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+    .logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .logo-dot { color: var(--accent-blue); }
+    .header-badge {
+      background: linear-gradient(135deg, #1f6feb, #388bfd);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      text-align: center;
+      padding: 4rem 2rem 3rem;
+      background: radial-gradient(ellipse at top, #1a2744 0%, transparent 70%);
+    }
+    .hero-eyebrow {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-blue);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .hero h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 1.25rem;
+      background: linear-gradient(135deg, #e6edf3 30%, #58a6ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 580px;
+      margin: 0 auto 2rem;
+    }
+    .hero-disclaimer {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(240, 136, 62, 0.1);
+      border: 1px solid rgba(240, 136, 62, 0.3);
+      border-radius: 8px;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.82rem;
+      color: var(--accent-orange);
+      max-width: 600px;
+    }
+
+    /* ─── PROGRESS ─── */
+    .progress-container {
+      max-width: 760px;
+      margin: 0 auto 2rem;
+      padding: 0 2rem;
+    }
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .progress-label { font-size: 0.82rem; color: var(--text-secondary); font-weight: 500; }
+    .progress-count { font-size: 0.82rem; color: var(--accent-blue); font-weight: 600; }
+    .progress-bar {
+      height: 4px;
+      background: var(--progress-bg);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #1f6feb, #58a6ff);
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    /* ─── MAIN CONTAINER ─── */
+    .main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 2rem 4rem;
+    }
+
+    /* ─── QUESTION CARD ─── */
+    .question-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      display: none;
+      animation: fadeSlideIn 0.35s ease;
+    }
+    .question-card.active { display: block; }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .question-number {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent-blue);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .question-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.4rem;
+    }
+    .question-hint {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+    }
+
+    /* ─── OPTIONS (Radio-Style) ─── */
+    .options-grid {
+      display: grid;
+      gap: 0.75rem;
+    }
+    .options-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+    .options-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    .option-btn {
+      background: var(--bg-dark);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem 1.1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+    }
+    .option-btn:hover {
+      border-color: var(--accent-blue);
+      background: rgba(88, 166, 255, 0.05);
+    }
+    .option-btn.selected {
+      border-color: var(--accent-blue);
+      background: rgba(88, 166, 255, 0.12);
+      color: var(--accent-blue);
+    }
+    .option-icon {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .option-text { flex: 1; }
+    .option-label { font-weight: 500; display: block; }
+    .option-sub { font-size: 0.78rem; color: var(--text-secondary); display: block; margin-top: 0.1rem; }
+    .option-btn.selected .option-sub { color: rgba(88, 166, 255, 0.7); }
+
+    /* ─── SLIDER ─── */
+    .slider-wrap { padding: 0.5rem 0; }
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: var(--progress-bg);
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      border: 3px solid var(--bg-card);
+      box-shadow: 0 0 0 2px var(--accent-blue);
+      cursor: pointer;
+    }
+    .slider-value {
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+      margin-top: 0.75rem;
+    }
+    .slider-value span { font-size: 1rem; color: var(--text-secondary); font-weight: 400; }
+
+    /* ─── NUMBER INPUT ─── */
+    .number-input-wrap { position: relative; }
+    .number-input-wrap input[type="number"] {
+      width: 100%;
+      background: var(--bg-dark);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      font-size: 1.1rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .number-input-wrap input[type="number"]:focus { border-color: var(--accent-blue); }
+    .number-input-wrap .currency {
+      position: absolute;
+      right: 1.2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { opacity: 0.4; }
+
+    /* ─── NAV BUTTONS ─── */
+    .nav-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.75rem;
+    }
+    .btn {
+      padding: 0.8rem 1.75rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #1f6feb, #388bfd);
+      color: white;
+      flex: 1;
+    }
+    .btn-primary:hover { background: linear-gradient(135deg, #388bfd, #58a6ff); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-secondary {
+      background: var(--bg-dark);
+      border: 1.5px solid var(--border);
+      color: var(--text-secondary);
+    }
+    .btn-secondary:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+    .btn-calculate {
+      background: linear-gradient(135deg, #1a7f37, #3fb950);
+      color: white;
+      flex: 1;
+      font-size: 1rem;
+      padding: 1rem 2rem;
+    }
+    .btn-calculate:hover { background: linear-gradient(135deg, #3fb950, #56d364); transform: translateY(-1px); }
+
+    /* ─── RESULT SECTION ─── */
+    #result-section { display: none; }
+    #result-section.visible { display: block; animation: fadeSlideIn 0.5s ease; }
+
+    .result-header {
+      text-align: center;
+      padding: 2rem 0 1.5rem;
+    }
+    .result-header h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #e6edf3 30%, #3fb950 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+    .result-header p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .result-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+    .result-card.full-width { grid-column: 1 / -1; }
+
+    .result-card h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 1rem;
+    }
+
+    /* ─── CHART ─── */
+    .chart-container {
+      position: relative;
+      width: 100%;
+      max-width: 280px;
+      margin: 0 auto;
+    }
+
+    /* ─── ALLOCATION BARS ─── */
+    .alloc-list { display: flex; flex-direction: column; gap: 0.85rem; }
+    .alloc-item {}
+    .alloc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.35rem;
+    }
+    .alloc-name {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.88rem;
+      font-weight: 500;
+    }
+    .alloc-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .alloc-pct {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+    .alloc-bar-bg {
+      height: 6px;
+      background: var(--progress-bg);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .alloc-bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.8s ease;
+    }
+
+    /* ─── PROFILE SUMMARY ─── */
+    .profile-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .chip {
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .chip strong { color: var(--text-primary); }
+
+    /* ─── ETF TABLE ─── */
+    .etf-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .etf-table th {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border);
+    }
+    .etf-table td {
+      padding: 0.65rem 0.75rem;
+      border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+      vertical-align: middle;
+    }
+    .etf-table tr:last-child td { border-bottom: none; }
+    .etf-table tr:hover td { background: rgba(88, 166, 255, 0.04); }
+    .etf-cat {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .etf-pct-cell {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    .etf-amount {
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+    }
+
+    /* ─── RISK METER ─── */
+    .risk-meter {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .risk-bar {
+      flex: 1;
+      height: 8px;
+      background: linear-gradient(90deg, #3fb950, #d29922, #f85149);
+      border-radius: 8px;
+      position: relative;
+    }
+    .risk-needle {
+      position: absolute;
+      top: -4px;
+      width: 16px;
+      height: 16px;
+      background: white;
+      border: 2px solid var(--bg-card);
+      border-radius: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
+      transition: left 0.8s ease;
+    }
+    .risk-label {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    /* ─── DISCLAIMER BOX ─── */
+    .disclaimer-box {
+      background: rgba(240, 136, 62, 0.07);
+      border: 1px solid rgba(240, 136, 62, 0.25);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .disclaimer-box h4 {
+      color: var(--accent-orange);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .disclaimer-box p {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* ─── CTA ─── */
+    .cta-box {
+      background: linear-gradient(135deg, #1a2744, #1a1f2e);
+      border: 1px solid rgba(88, 166, 255, 0.2);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+    .cta-box h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.25rem; }
+    .btn-restart {
+      background: var(--bg-dark);
+      border: 1.5px solid var(--border);
+      color: var(--text-secondary);
+      padding: 0.7rem 1.5rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+    .btn-restart:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 600px) {
+      .options-grid.cols-2 { grid-template-columns: 1fr; }
+      .options-grid.cols-3 { grid-template-columns: 1fr 1fr; }
+      .result-grid { grid-template-columns: 1fr; }
+      .result-card.full-width { grid-column: 1; }
+      .hero h1 { font-size: 1.8rem; }
+      .main { padding: 0 1rem 3rem; }
+      .site-header { padding: 0.75rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="logo">📊 Kasseltrader<span class="logo-dot">.</span></div>
+  <div class="header-badge">Portfolio-Konfigurator</div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">Dein persönliches Portfolio</div>
+  <h1>Wie sollte dein<br>Portfolio aussehen?</h1>
+  <p>Beantworte 8 einfache Fragen – und erhalte eine auf dich zugeschnittene Empfehlung für deine Vermögensaufteilung.</p>
+  <div class="hero-disclaimer">
+    ⚠️ Dies ist keine Anlageberatung, sondern eine grobe Orientierungshilfe zur Selbstreflexion.
+  </div>
+</section>
+
+<!-- PROGRESS -->
+<div class="progress-container" id="progress-container">
+  <div class="progress-header">
+    <span class="progress-label" id="progress-label">Frage 1 von 8</span>
+    <span class="progress-count" id="progress-count">0%</span>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- ── FRAGE 1: Alter ── -->
+  <div class="question-card active" id="q1">
+    <div class="question-number">Frage 1 von 8</div>
+    <div class="question-title">Wie alt bist du?</div>
+    <div class="question-hint">Dein Alter beeinflusst, wie viel Risiko du dir zeitlich leisten kannst.</div>
+    <div class="slider-wrap">
+      <div class="slider-labels"><span>18 Jahre</span><span>80 Jahre</span></div>
+      <input type="range" id="alter-slider" min="18" max="80" value="35" oninput="updateSlider('alter', this.value, ' Jahre')" />
+      <div class="slider-value" id="alter-val">35 <span>Jahre</span></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn btn-primary" onclick="nextQuestion(1)">Weiter →</button>
+    </div>
+  </div>
+
+  <!-- ── FRAGE 2: Monatliches Nettoeinkommen ── -->
+  <div class="question-card" id="q2">
+    <div class="question-number">Frage 2 von 8</div>
+    <div class="question-title">Wie hoch ist dein monatliches Nettoeinkommen?</div>
+    <div class="question-hint">Ungefähre Angabe reicht – wir berechnen daraus deine Investitionskapazität.</div>
+    <div class="options-grid cols-2">
+      <button class="option-btn" onclick="selectOption('einkommen', 'unter1500', this)">
+        <span class="option-icon">💼</span>
+        <span class="option-text">
+          <span class="option-label">Unter 1.500 €</span>
+          <span class="option-sub">Einsteiger / Teilzeit</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('einkommen', '1500-2500', this)">
+        <span class="option-icon">💼</span>
+        <span class="option-text">
+          <span class="option-label">1.500 – 2.500 €</span>
+          <span class="option-sub">Durchschnittliches Einkommen</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('einkommen', '2500-4000', this)">
+        <span class="option-icon">💼</span>
+        <span class="option-text">
+          <span class="option-label">2.500 – 4.000 €</span>
+          <span class="option-sub">Gehobenes Einkommen</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('einkommen', 'ueber4000', this)">
+        <span class="option-icon">💼</span>
+        <span class="option-text">
+          <span class="option-label">Über 4.000 €</span>
+          <span class="option-sub">Hohes Einkommen</span>
+        </span>
+      </button>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" onclick="prevQuestion(2)">← Zurück</button>
+      <button class="btn btn-primary" id="next-q2" onclick="nextQuestion(2)" disabled>Weiter →</button>
+    </div>
+  </div>
+
+  <!-- ── FRAGE 3: Bereits angespartes Kapital ── -->
+  <div class="question-card" id="q3">
+    <div class="question-number">Frage 3 von 8</div>
+    <div class="question-title">Wie viel Kapital möchtest du anlegen?</div>
+    <div class="question-hint">Gemeint ist das Geld, das du jetzt sofort investieren könntest (ohne Notgroschen).</div>
+    <div class="number-input-wrap">
+      <input type="number" id="kapital-input" placeholder="z.B. 10000" min="0" step="500"
+             oninput="answers.kapital = parseInt(this.value) || 0" />
+      <span class="currency">€</span>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" onclick="prevQuestion(3)">← Zurück</button>
+      <button class="btn btn-primary" onclick="nextQuestion(3)">Weiter →</button>
+    </div>
+  </div>
+
+  <!-- ── FRAGE 4: Monatliche Sparrate ── -->
+  <div class="question-card" id="q4">
+    <div class="question-number">Frage 4 von 8</div>
+    <div class="question-title">Hast du eine monatliche Sparrate?</div>
+    <div class="question-hint">Wie viel kannst du jeden Monat zusätzlich investieren?</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="selectOption('sparrate', 'keine', this)">
+        <span class="option-icon">⏸️</span>
+        <span class="option-text">
+          <span class="option-label">Keine Sparrate</span>
+          <span class="option-sub">Ich investiere nur einmalig</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('sparrate', 'unter100', this)">
+        <span class="option-icon">💧</span>
+        <span class="option-text">
+          <span class="option-label">Unter 100 € / Monat</span>
+          <span class="option-sub">Kleiner, aber regelmäßiger Beitrag</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('sparrate', '100-300', this)">
+        <span class="option-icon">💧💧</span>
+        <span class="option-text">
+          <span class="option-label">100 – 300 € / Monat</span>
+          <span class="option-sub">Solide Sparquote</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('sparrate', '300-600', this)">
+        <span class="option-icon">💧💧💧</span>
+        <span class="option-text">
+          <span class="option-label">300 – 600 € / Monat</span>
+          <span class="option-sub">Überdurchschnittliche Sparquote</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('sparrate', 'ueber600', this)">
+        <span class="option-icon">🚀</span>
+        <span class="option-text">
+          <span class="option-label">Über 600 € / Monat</span>
+          <span class="option-sub">Hohe Sparquote</span>
+        </span>
+      </button>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" onclick="prevQuestion(4)">← Zurück</button>
+      <button class="btn btn-primary" id="next-q4" onclick="nextQuestion(4)" disabled>Weiter →</button>
+    </div>
+  </div>
+
+  <!-- ── FRAGE 5: Anlagehorizont ── -->
+  <div class="question-card" id="q5">
+    <div class="question-number">Frage 5 von 8</div>
+    <div class="question-title">Wie lange möchtest du investiert bleiben?</div>
+    <div class="question-hint">Je länger der Horizont, desto mehr Risiko kannst du eingehen – der Markt hat mehr Zeit, sich zu erholen.</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="selectOption('horizont', 'kurz', this)">
+        <span class="option-icon">⏱️</span>
+        <span class="option-text">
+          <span class="option-label">Unter 3 Jahre</span>
+          <span class="option-sub">Kurzfristig – ich brauche das Geld bald</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('horizont', 'mittel', this)">
+        <span class="option-icon">📅</span>
+        <span class="option-text">
+          <span class="option-label">3 – 7 Jahre</span>
+          <span class="option-sub">Mittelfristig</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('horizont', 'lang', this)">
+        <span class="option-icon">🗓️</span>
+        <span class="option-text">
+          <span class="option-label">7 – 15 Jahre</span>
+          <span class="option-sub">Langfristig – z.B. Altersvorsorge</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('horizont', 'sehrlang', this)">
+        <span class="option-icon">♾️</span>
+        <span class="option-text">
+          <span class="option-label">Über 15 Jahre</span>
+          <span class="option-sub">Sehr langfristig – Generationenvermögen</span>
+        </span>
+      </button>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" onclick="prevQuestion(5)">← Zurück</button>
+      <button class="btn btn-primary" id="next-q5" onclick="nextQuestion(5)" disabled>Weiter →</button>
+    </div>
+  </div>
+
+  <!-- ── FRAGE 6: Risikobereitschaft ── -->
+  <div class="question-card" id="q6">
+    <div class="question-number">Frage 6 von 8</div>
+    <div class="question-title">Wie reagierst du auf Kursverluste?</div>
+    <div class="question-hint">Stell dir vor, dein Portfolio verliert 30% in einem Monat. Was machst du?</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="selectOption('risiko', 'sehrscheu', this)">
+        <span class="option-icon">😰</span>
+        <span class="option-text">
+          <span class="option-label">Ich verkaufe sofort</span>
+          <span class="option-sub">Verluste machen mir sehr viel Angst</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('risiko', 'scheu', this)">
+        <span class="option-icon">😟</span>
+        <span class="option-text">
+          <span class="option-label">Ich warte ab, aber schlafe schlecht</span>
+          <span class="option-sub">Ich kann es halten, aber es stresst mich</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('risiko', 'neutral', this)">
+        <span class="option-icon">😐</span>
+        <span class="option-text">
+          <span class="option-label">Ich bleibe ruhig und halte</span>
+          <span class="option-sub">Ich vertraue dem langfristigen Trend</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('risiko', 'mutig', this)">
+        <span class="option-icon">😎</span>
+        <span class="option-text">
+          <span class="option-label">Ich kaufe nach</span>
+          <span class="option-sub">Günstige Kurse sind eine Chance für mich</span>
+        </span>
+      </button>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" onclick="prevQuestion(6)">← Zurück</button>
+      <button class="btn btn-primary" id="next-q6" onclick="nextQuestion(6)" disabled>Weiter →</button>
+    </div>
+  </div>
+
+  <!-- ── FRAGE 7: Erfahrung ── -->
+  <div class="question-card" id="q7">
+    <div class="question-number">Frage 7 von 8</div>
+    <div class="question-title">Wie viel Erfahrung hast du mit Geldanlage?</div>
+    <div class="question-hint">Ehrlichkeit zahlt sich aus – ein zu komplexes Portfolio kann gefährlich werden.</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="selectOption('erfahrung', 'keine', this)">
+        <span class="option-icon">🌱</span>
+        <span class="option-text">
+          <span class="option-label">Keine Erfahrung</span>
+          <span class="option-sub">Ich fange gerade erst an</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('erfahrung', 'wenig', this)">
+        <span class="option-icon">📖</span>
+        <span class="option-text">
+          <span class="option-label">Wenig Erfahrung</span>
+          <span class="option-sub">Ich kenne ETFs und Aktien grundlegend</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('erfahrung', 'mittel', this)">
+        <span class="option-icon">📊</span>
+        <span class="option-text">
+          <span class="option-label">Mittlere Erfahrung</span>
+          <span class="option-sub">Ich investiere seit einigen Jahren</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('erfahrung', 'viel', this)">
+        <span class="option-icon">🎯</span>
+        <span class="option-text">
+          <span class="option-label">Viel Erfahrung</span>
+          <span class="option-sub">Ich kenne auch Optionen, Futures, etc.</span>
+        </span>
+      </button>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" onclick="prevQuestion(7)">← Zurück</button>
+      <button class="btn btn-primary" id="next-q7" onclick="nextQuestion(7)" disabled>Weiter →</button>
+    </div>
+  </div>
+
+  <!-- ── FRAGE 8: Ziel ── -->
+  <div class="question-card" id="q8">
+    <div class="question-number">Frage 8 von 8</div>
+    <div class="question-title">Was ist dein primäres Anlageziel?</div>
+    <div class="question-hint">Dein Ziel bestimmt, ob du eher auf Wachstum oder Stabilität setzen solltest.</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="selectOption('ziel', 'kapitalerhalt', this)">
+        <span class="option-icon">🛡️</span>
+        <span class="option-text">
+          <span class="option-label">Kapitalerhalt</span>
+          <span class="option-sub">Inflation schlagen, Vermögen sichern</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('ziel', 'wachstum', this)">
+        <span class="option-icon">📈</span>
+        <span class="option-text">
+          <span class="option-label">Vermögensaufbau</span>
+          <span class="option-sub">Langfristig Vermögen aufbauen</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('ziel', 'rente', this)">
+        <span class="option-icon">🏖️</span>
+        <span class="option-text">
+          <span class="option-label">Altersvorsorge</span>
+          <span class="option-sub">Für die Rente vorsorgen</span>
+        </span>
+      </button>
+      <button class="option-btn" onclick="selectOption('ziel', 'rendite', this)">
+        <span class="option-icon">🚀</span>
+        <span class="option-text">
+          <span class="option-label">Maximale Rendite</span>
+          <span class="option-sub">Ich will das Maximum herausholen</span>
+        </span>
+      </button>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" onclick="prevQuestion(8)">← Zurück</button>
+      <button class="btn btn-calculate" id="calc-btn" onclick="calculatePortfolio()" disabled>
+        🎯 Mein Portfolio berechnen
+      </button>
+    </div>
+  </div>
+
+  <!-- ── ERGEBNIS ── -->
+  <div id="result-section">
+    <div class="result-header">
+      <h2>Deine Portfolio-Empfehlung</h2>
+      <p id="result-subtitle">Basierend auf deinem persönlichen Profil</p>
+    </div>
+
+    <!-- Profil-Zusammenfassung -->
+    <div class="result-card" style="margin-bottom: 1.5rem;">
+      <h3>Dein Profil</h3>
+      <div class="profile-chips" id="profile-chips"></div>
+    </div>
+
+    <div class="result-grid">
+      <!-- Donut Chart -->
+      <div class="result-card">
+        <h3>Aufteilung auf einen Blick</h3>
+        <div class="chart-container">
+          <canvas id="portfolioChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Allokations-Balken -->
+      <div class="result-card">
+        <h3>Asset-Klassen</h3>
+        <div class="alloc-list" id="alloc-list"></div>
+        <div style="margin-top: 1.25rem;">
+          <div style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.4rem;">Risikoprofil</div>
+          <div class="risk-meter">
+            <span class="risk-label">Konservativ</span>
+            <div class="risk-bar">
+              <div class="risk-needle" id="risk-needle"></div>
+            </div>
+            <span class="risk-label">Offensiv</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ETF-Tabelle -->
+      <div class="result-card full-width">
+        <h3>Konkrete Positionen &amp; Beispiel-ETFs</h3>
+        <table class="etf-table" id="etf-table">
+          <thead>
+            <tr>
+              <th>Position</th>
+              <th>Kategorie</th>
+              <th>Anteil</th>
+              <th id="kapital-header">Betrag (Einmalanlage)</th>
+            </tr>
+          </thead>
+          <tbody id="etf-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer-box">
+      <h4>⚠️ Wichtiger Hinweis</h4>
+      <p>Diese Empfehlung ist eine <strong>grobe Orientierungshilfe</strong> und stellt keine Anlageberatung im rechtlichen Sinne dar. Jede Investitionsentscheidung liegt in deiner eigenen Verantwortung. Bitte informiere dich selbst oder konsultiere einen zugelassenen Finanzberater, bevor du Entscheidungen triffst. Vergangene Renditen sind keine Garantie für zukünftige Ergebnisse.</p>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-box">
+      <h3>Möchtest du tiefer einsteigen?</h3>
+      <p>Lerne in meinen Kursen und auf YouTube, wie du dein Portfolio selbst analysierst, optimierst und langfristig aufbaust.</p>
+      <button class="btn-restart" onclick="restartQuiz()">🔄 Neu berechnen</button>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  &copy; 2025 Kasseltrader · Kein Anlageberater · Alle Angaben ohne Gewähr
+</footer>
+
+<script>
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+const TOTAL_QUESTIONS = 8;
+let currentQ = 1;
+let chartInstance = null;
+
+const answers = {
+  alter: 35,
+  einkommen: null,
+  kapital: 0,
+  sparrate: null,
+  horizont: null,
+  risiko: null,
+  erfahrung: null,
+  ziel: null
+};
+
+// ─────────────────────────────────────────────
+//  SLIDER
+// ─────────────────────────────────────────────
+function updateSlider(key, val, suffix) {
+  answers[key] = parseInt(val);
+  const el = document.getElementById(key + '-val');
+  if (el) {
+    el.innerHTML = val + ' <span>' + suffix.trim() + '</span>';
+  }
+}
+
+// ─────────────────────────────────────────────
+//  OPTION SELECTION
+// ─────────────────────────────────────────────
+function selectOption(key, value, btn) {
+  answers[key] = value;
+  // Deselect siblings
+  btn.closest('.options-grid').querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  // Enable next button
+  const nextBtn = document.getElementById('next-q' + currentQ) || document.getElementById('calc-btn');
+  if (nextBtn) nextBtn.disabled = false;
+}
+
+// ─────────────────────────────────────────────
+//  NAVIGATION
+// ─────────────────────────────────────────────
+function showQuestion(n) {
+  document.querySelectorAll('.question-card').forEach(c => c.classList.remove('active'));
+  const card = document.getElementById('q' + n);
+  if (card) card.classList.add('active');
+  currentQ = n;
+  updateProgress(n);
+}
+
+function nextQuestion(from) {
+  if (from < TOTAL_QUESTIONS) showQuestion(from + 1);
+}
+
+function prevQuestion(from) {
+  if (from > 1) showQuestion(from - 1);
+}
+
+function updateProgress(n) {
+  const pct = Math.round(((n - 1) / TOTAL_QUESTIONS) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-count').textContent = pct + '%';
+  document.getElementById('progress-label').textContent = 'Frage ' + n + ' von ' + TOTAL_QUESTIONS;
+}
+
+// ─────────────────────────────────────────────
+//  PORTFOLIO LOGIC
+// ─────────────────────────────────────────────
+function calculatePortfolio() {
+  // ── 1. Risiko-Score berechnen (0–100) ──
+  let score = 50; // Basis
+
+  // Alter: jünger = mehr Risiko
+  const alter = answers.alter;
+  if (alter < 30) score += 15;
+  else if (alter < 40) score += 8;
+  else if (alter < 50) score += 0;
+  else if (alter < 60) score -= 10;
+  else score -= 20;
+
+  // Horizont
+  const horizMap = { kurz: -20, mittel: -5, lang: 10, sehrlang: 20 };
+  score += horizMap[answers.horizont] || 0;
+
+  // Risikobereitschaft
+  const risikoMap = { sehrscheu: -25, scheu: -10, neutral: 5, mutig: 20 };
+  score += risikoMap[answers.risiko] || 0;
+
+  // Erfahrung
+  const erfMap = { keine: -10, wenig: -5, mittel: 5, viel: 10 };
+  score += erfMap[answers.erfahrung] || 0;
+
+  // Ziel
+  const zielMap = { kapitalerhalt: -15, wachstum: 5, rente: 0, rendite: 15 };
+  score += zielMap[answers.ziel] || 0;
+
+  // Einkommen (höheres Einkommen = etwas mehr Puffer)
+  const einkommenMap = { 'unter1500': -5, '1500-2500': 0, '2500-4000': 5, 'ueber4000': 8 };
+  score += einkommenMap[answers.einkommen] || 0;
+
+  score = Math.max(0, Math.min(100, score));
+
+  // ── 2. Allokation berechnen ──
+  let alloc = {};
+
+  if (score < 25) {
+    // Sehr konservativ
+    alloc = { laenderETF: 30, rohstoffETF: 15, anleihenETF: 30, gold: 20, krypto: 5 };
+  } else if (score < 45) {
+    // Konservativ
+    alloc = { laenderETF: 45, rohstoffETF: 15, anleihenETF: 15, gold: 20, krypto: 5 };
+  } else if (score < 60) {
+    // Ausgewogen
+    alloc = { laenderETF: 55, rohstoffETF: 15, anleihenETF: 5, gold: 15, krypto: 10 };
+  } else if (score < 75) {
+    // Wachstum
+    alloc = { laenderETF: 60, rohstoffETF: 15, anleihenETF: 0, gold: 10, krypto: 15 };
+  } else {
+    // Offensiv
+    alloc = { laenderETF: 55, rohstoffETF: 15, anleihenETF: 0, gold: 10, krypto: 20 };
+  }
+
+  // ── 3. Länder-ETF Unteraufteilung ──
+  let laenderSplit = {};
+  if (score < 40) {
+    laenderSplit = { 'Welt (MSCI World)': 60, 'Europa (STOXX 600)': 25, 'Schwellenländer (EM)': 15 };
+  } else if (score < 65) {
+    laenderSplit = { 'Welt (MSCI World)': 50, 'USA (S&P 500)': 20, 'Europa (STOXX 600)': 15, 'Schwellenländer (EM)': 15 };
+  } else {
+    laenderSplit = { 'Welt (MSCI World)': 40, 'USA (S&P 500)': 25, 'Schwellenländer (EM)': 20, 'Asien/Pazifik': 15 };
+  }
+
+  // ── 4. Rohstoff-ETF Unteraufteilung ──
+  let rohstoffSplit = {};
+  if (score < 50) {
+    rohstoffSplit = { 'Rohstoffe breit (GSCI)': 60, 'Energie (Oil & Gas)': 40 };
+  } else {
+    rohstoffSplit = { 'Rohstoffe breit (GSCI)': 50, 'Energie (Oil & Gas)': 30, 'Agrar': 20 };
+  }
+
+  // ── 5. Ergebnis anzeigen ──
+  showResult(score, alloc, laenderSplit, rohstoffSplit);
+}
+
+// ─────────────────────────────────────────────
+//  RESULT RENDERING
+// ─────────────────────────────────────────────
+const COLORS = {
+  laenderETF:  '#58a6ff',
+  rohstoffETF: '#f0883e',
+  anleihenETF: '#3fb950',
+  gold:        '#d29922',
+  krypto:      '#bc8cff'
+};
+
+const LABELS = {
+  laenderETF:  'Länder-ETFs',
+  rohstoffETF: 'Rohstoff-ETFs',
+  anleihenETF: 'Anleihen-ETFs',
+  gold:        'Gold',
+  krypto:      'Krypto'
+};
+
+function showResult(score, alloc, laenderSplit, rohstoffSplit) {
+  // Hide questions, show result
+  document.querySelectorAll('.question-card').forEach(c => c.style.display = 'none');
+  document.getElementById('progress-container').style.display = 'none';
+  const rs = document.getElementById('result-section');
+  rs.classList.add('visible');
+
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Profil-Chips
+  renderProfileChips();
+
+  // Donut Chart
+  renderChart(alloc);
+
+  // Alloc Bars
+  renderAllocBars(alloc);
+
+  // Risk Needle
+  document.getElementById('risk-needle').style.left = score + '%';
+
+  // ETF Table
+  renderETFTable(alloc, laenderSplit, rohstoffSplit);
+
+  // Subtitle
+  const profileName = getProfileName(score);
+  document.getElementById('result-subtitle').textContent =
+    'Profil: ' + profileName + ' · Risiko-Score: ' + Math.round(score) + '/100';
+}
+
+function getProfileName(score) {
+  if (score < 25) return 'Sehr Konservativ';
+  if (score < 45) return 'Konservativ';
+  if (score < 60) return 'Ausgewogen';
+  if (score < 75) return 'Wachstumsorientiert';
+  return 'Offensiv';
+}
+
+function renderProfileChips() {
+  const chips = [
+    { label: 'Alter', val: answers.alter + ' Jahre' },
+    { label: 'Einkommen', val: { 'unter1500': '< 1.500 €', '1500-2500': '1.500–2.500 €', '2500-4000': '2.500–4.000 €', 'ueber4000': '> 4.000 €' }[answers.einkommen] },
+    { label: 'Kapital', val: (answers.kapital || 0).toLocaleString('de-DE') + ' €' },
+    { label: 'Sparrate', val: { keine: 'Keine', unter100: '< 100 €/Mo.', '100-300': '100–300 €/Mo.', '300-600': '300–600 €/Mo.', ueber600: '> 600 €/Mo.' }[answers.sparrate] },
+    { label: 'Horizont', val: { kurz: '< 3 Jahre', mittel: '3–7 Jahre', lang: '7–15 Jahre', sehrlang: '> 15 Jahre' }[answers.horizont] },
+    { label: 'Risiko', val: { sehrscheu: 'Sehr risikoscheu', scheu: 'Risikoscheu', neutral: 'Neutral', mutig: 'Risikofreudig' }[answers.risiko] },
+    { label: 'Erfahrung', val: { keine: 'Keine', wenig: 'Wenig', mittel: 'Mittel', viel: 'Viel' }[answers.erfahrung] },
+    { label: 'Ziel', val: { kapitalerhalt: 'Kapitalerhalt', wachstum: 'Vermögensaufbau', rente: 'Altersvorsorge', rendite: 'Max. Rendite' }[answers.ziel] }
+  ];
+
+  document.getElementById('profile-chips').innerHTML = chips.map(c =>
+    `<div class="chip">${c.label}: <strong>${c.val}</strong></div>`
+  ).join('');
+}
+
+function renderChart(alloc) {
+  const ctx = document.getElementById('portfolioChart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+
+  const labels = [];
+  const data = [];
+  const colors = [];
+
+  Object.entries(alloc).forEach(([key, val]) => {
+    if (val > 0) {
+      labels.push(LABELS[key]);
+      data.push(val);
+      colors.push(COLORS[key]);
+    }
+  });
+
+  chartInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: colors,
+        borderColor: '#161b22',
+        borderWidth: 3,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      cutout: '68%',
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' ' + ctx.label + ': ' + ctx.parsed + '%'
+          },
+          backgroundColor: '#1c2330',
+          borderColor: '#30363d',
+          borderWidth: 1,
+          titleColor: '#e6edf3',
+          bodyColor: '#8b949e',
+          padding: 10
+        }
+      }
+    }
+  });
+}
+
+function renderAllocBars(alloc) {
+  const list = document.getElementById('alloc-list');
+  list.innerHTML = Object.entries(alloc)
+    .filter(([, v]) => v > 0)
+    .map(([key, val]) => `
+      <div class="alloc-item">
+        <div class="alloc-header">
+          <div class="alloc-name">
+            <div class="alloc-dot" style="background:${COLORS[key]}"></div>
+            ${LABELS[key]}
+          </div>
+          <div class="alloc-pct" style="color:${COLORS[key]}">${val}%</div>
+        </div>
+        <div class="alloc-bar-bg">
+          <div class="alloc-bar-fill" style="width:${val}%; background:${COLORS[key]}"></div>
+        </div>
+      </div>
+    `).join('');
+}
+
+function renderETFTable(alloc, laenderSplit, rohstoffSplit) {
+  const kapital = answers.kapital || 0;
+  const tbody = document.getElementById('etf-tbody');
+  const rows = [];
+
+  // Beispiel-ETFs
+  const etfExamples = {
+    'Welt (MSCI World)':       { isin: 'IE00B4L5Y983', name: 'iShares Core MSCI World' },
+    'USA (S&P 500)':           { isin: 'IE00B3XXRP09', name: 'iShares Core S&P 500' },
+    'Europa (STOXX 600)':      { isin: 'IE00B3XXRP09', name: 'Xtrackers STOXX Europe 600' },
+    'Schwellenländer (EM)':    { isin: 'IE00BKM4GZ66', name: 'iShares Core MSCI EM IMI' },
+    'Asien/Pazifik':           { isin: 'IE00B0M63177', name: 'iShares MSCI AC Far East ex-Japan' },
+    'Rohstoffe breit (GSCI)':  { isin: 'IE00B3CNHF18', name: 'iShares S&P GSCI Commodity' },
+    'Energie (Oil & Gas)':     { isin: 'IE00B42NKQ00', name: 'iShares Oil & Gas Exploration' },
+    'Agrar':                   { isin: 'IE00B3CNHF18', name: 'WisdomTree Agriculture' },
+    'Gold':                    { isin: 'DE000A0S9GB0', name: 'Xetra-Gold ETC' },
+    'Krypto':                  { isin: '—', name: 'Bitcoin/Ethereum (z.B. via Bitpanda)' },
+    'Anleihen-ETFs':           { isin: 'IE00B4WXJJ64', name: 'iShares Core Global Aggregate Bond' }
+  };
+
+  const catStyle = {
+    'Länder-ETF':    { bg: 'rgba(88,166,255,0.15)',  color: '#58a6ff' },
+    'Rohstoff-ETF':  { bg: 'rgba(240,136,62,0.15)', color: '#f0883e' },
+    'Anleihen-ETF':  { bg: 'rgba(63,185,80,0.15)',  color: '#3fb950' },
+    'Gold':          { bg: 'rgba(210,153,34,0.15)', color: '#d29922' },
+    'Krypto':        { bg: 'rgba(188,140,255,0.15)',color: '#bc8cff' }
+  };
+
+  function addRow(name, cat, pct) {
+    const etf = etfExamples[name] || { isin: '—', name: name };
+    const betrag = kapital > 0 ? (kapital * pct / 100).toLocaleString('de-DE', { maximumFractionDigits: 0 }) + ' €' : '—';
+    const cs = catStyle[cat] || catStyle['Länder-ETF'];
+    rows.push(`
+      <tr>
+        <td>
+          <div style="font-weight:600;font-size:0.88rem">${name}</div>
+          <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.15rem">${etf.name}</div>
+        </td>
+        <td><span class="etf-cat" style="background:${cs.bg};color:${cs.color}">${cat}</span></td>
+        <td class="etf-pct-cell" style="color:${cs.color}">${pct}%</td>
+        <td class="etf-amount">${betrag}</td>
+      </tr>
+    `);
+  }
+
+  // Länder-ETFs
+  Object.entries(laenderSplit).forEach(([name, splitPct]) => {
+    const pct = Math.round(alloc.laenderETF * splitPct / 100);
+    if (pct > 0) addRow(name, 'Länder-ETF', pct);
+  });
+
+  // Rohstoff-ETFs
+  Object.entries(rohstoffSplit).forEach(([name, splitPct]) => {
+    const pct = Math.round(alloc.rohstoffETF * splitPct / 100);
+    if (pct > 0) addRow(name, 'Rohstoff-ETF', pct);
+  });
+
+  // Anleihen
+  if (alloc.anleihenETF > 0) addRow('Anleihen-ETFs', 'Anleihen-ETF', alloc.anleihenETF);
+
+  // Gold
+  if (alloc.gold > 0) addRow('Gold', 'Gold', alloc.gold);
+
+  // Krypto
+  if (alloc.krypto > 0) addRow('Krypto', 'Krypto', alloc.krypto);
+
+  tbody.innerHTML = rows.join('');
+
+  // Update header
+  document.getElementById('kapital-header').textContent =
+    kapital > 0 ? 'Betrag (bei ' + kapital.toLocaleString('de-DE') + ' €)' : 'Betrag (Einmalanlage)';
+}
+
+// ─────────────────────────────────────────────
+//  RESTART
+// ─────────────────────────────────────────────
+function restartQuiz() {
+  // Reset answers
+  answers.alter = 35;
+  answers.einkommen = null;
+  answers.kapital = 0;
+  answers.sparrate = null;
+  answers.horizont = null;
+  answers.risiko = null;
+  answers.erfahrung = null;
+  answers.ziel = null;
+
+  // Reset UI
+  document.getElementById('alter-slider').value = 35;
+  document.getElementById('alter-val').innerHTML = '35 <span>Jahre</span>';
+  document.getElementById('kapital-input').value = '';
+
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  ['next-q2','next-q4','next-q5','next-q6','next-q7','calc-btn'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = true;
+  });
+
+  // Show questions
+  document.querySelectorAll('.question-card').forEach(c => c.style.display = '');
+  document.getElementById('progress-container').style.display = '';
+  document.getElementById('result-section').classList.remove('visible');
+
+  showQuestion(1);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
