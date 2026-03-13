@@ -1181,19 +1181,7 @@ setDefaultDate();
 toggleCloseFields();
 refresh();
 
-// Demo-Daten wenn leer
-if (trades.length === 0) {
-  const demo = [
-    { id: generateId(), symbol:'AAPL', date:'2026-01-15', contracts:2, strike:230, expiry:'2026-02-21', premium:2.80, stockPrice:225, status:'Abgelaufen', buyback:null, note:'Erster Trade' },
-    { id: generateId(), symbol:'MSFT', date:'2026-01-20', contracts:1, strike:420, expiry:'2026-02-28', premium:4.50, stockPrice:415, status:'Geschlossen', buyback:1.20, note:'Früh geschlossen' },
-    { id: generateId(), symbol:'NVDA', date:'2026-02-03', contracts:1, strike:140, expiry:'2026-03-21', premium:3.20, stockPrice:135, status:'Offen', buyback:null, note:'Läuft noch' },
-    { id: generateId(), symbol:'AAPL', date:'2026-02-10', contracts:2, strike:235, expiry:'2026-03-28', premium:2.10, stockPrice:228, status:'Offen', buyback:null, note:'' },
-  ];
-  demo.forEach(t => enrichTrade(t));
-  trades = demo;
-  saveData();
-  refresh();
-}
+
 </script>
 </body>
 </html>
