@@ -258,6 +258,47 @@
     .progress-bar-wrap { background: var(--surface2); border-radius: 4px; height: 6px; width: 100%; margin-top: 4px; }
     .progress-bar { height: 6px; border-radius: 4px; background: var(--accent2); }
 
+    /* ── Help Box ── */
+    .help-icon {
+      cursor: pointer;
+      font-size: 13px;
+      margin-left: 5px;
+      opacity: .7;
+      transition: opacity .2s;
+      user-select: none;
+    }
+    .help-icon:hover { opacity: 1; }
+    .help-box {
+      display: none;
+      background: #1c2a3a;
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-top: 8px;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--text);
+      grid-column: 1 / -1;
+    }
+    .help-box.show { display: block; }
+    .help-formula {
+      background: var(--surface2);
+      border-left: 3px solid var(--accent);
+      padding: 7px 12px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 13px;
+      margin: 8px 0;
+    }
+    .help-example {
+      background: rgba(63,185,80,.08);
+      border: 1px solid rgba(63,185,80,.25);
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin: 8px 0;
+      font-size: 12px;
+    }
+
     /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
@@ -405,9 +446,23 @@
           <input type="date" id="fExpiry" oninput="calcPreview()" />
         </div>
         <div class="form-group">
-          <label>Prämie pro Aktie ($) *</label>
+          <label>Prämie pro Aktie ($) *
+            <span class="help-icon" onclick="toggleHelp('helpPremium')" title="Erklärung anzeigen">❓</span>
+          </label>
           <input type="number" id="fPremium" placeholder="2.50" step="0.01" oninput="calcPreview()" />
-          <span class="hint">Erhaltene Prämie pro Aktie</span>
+          <span class="hint">Gesamtprämie vom Broker ÷ 100</span>
+          <div class="help-box" id="helpPremium">
+            <strong>💡 So findest du den richtigen Wert:</strong><br><br>
+            Dein Broker zeigt die Prämie meist als <strong>Gesamtbetrag</strong> an (z.B. 250 $).<br>
+            Da 1 Kontrakt = 100 Aktien, trägst du hier ein:<br><br>
+            <div class="help-formula">Gesamtprämie ÷ 100 = Prämie pro Aktie</div>
+            <div class="help-example">
+              Beispiel: Broker zeigt 250 $ → du trägst <strong>2,50</strong> ein<br>
+              Beispiel: Broker zeigt 180 $ → du trägst <strong>1,80</strong> ein
+            </div>
+            Die App rechnet dann automatisch zurück:<br>
+            2,50 × 100 × 1 Kontrakt = <strong>250 $ Gesamtprämie</strong>
+          </div>
         </div>
         <div class="form-group">
           <label>Aktueller Aktienpreis ($)</label>
@@ -1171,6 +1226,14 @@ function fmtDate(d) {
 function refresh() {
   updateKPIs();
   renderTable();
+}
+
+// ─────────────────────────────────────────────
+//  HELP BOX
+// ─────────────────────────────────────────────
+function toggleHelp(id) {
+  const box = document.getElementById(id);
+  box.classList.toggle('show');
 }
 
 // ─────────────────────────────────────────────
