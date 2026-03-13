@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Covered Call Trading Journal</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #21262d;
+      --border:    #30363d;
+      --accent:    #58a6ff;
+      --accent2:   #3fb950;
+      --danger:    #f85149;
+      --warning:   #d29922;
+      --text:      #e6edf3;
+      --text-muted:#8b949e;
+      --radius:    10px;
+      --shadow:    0 4px 20px rgba(0,0,0,.4);
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1a2332 0%, #0d1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    header .logo {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    header h1 { font-size: 20px; font-weight: 700; }
+    header p  { font-size: 12px; color: var(--text-muted); }
+
+    /* ── Layout ── */
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+    /* ── KPI Cards ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .kpi-card.blue::before  { background: var(--accent); }
+    .kpi-card.green::before { background: var(--accent2); }
+    .kpi-card.red::before   { background: var(--danger); }
+    .kpi-card.yellow::before{ background: var(--warning); }
+    .kpi-card.purple::before{ background: #bc8cff; }
+    .kpi-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+    .kpi-value { font-size: 26px; font-weight: 700; line-height: 1.1; }
+    .kpi-sub   { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ── Tabs ── */
+    .tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+    .tab-btn {
+      background: none; border: none; color: var(--text-muted);
+      padding: 10px 18px; cursor: pointer; font-size: 14px;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: color .2s, border-color .2s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 22px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: 15px; font-weight: 600;
+      margin-bottom: 18px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title .icon { font-size: 18px; }
+
+    /* ── Form ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; }
+    .form-group input, .form-group select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 9px 12px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+    .form-group input::placeholder { color: var(--text-muted); }
+    .form-group .hint { font-size: 11px; color: var(--accent); margin-top: 2px; }
+
+    .btn {
+      padding: 10px 22px; border: none; border-radius: 6px;
+      cursor: pointer; font-size: 14px; font-weight: 600;
+      transition: opacity .2s, transform .1s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn:active { transform: scale(.98); }
+    .btn-primary { background: var(--accent); color: #0d1117; }
+    .btn-success { background: var(--accent2); color: #0d1117; }
+    .btn-danger  { background: var(--danger); color: #fff; font-size: 12px; padding: 6px 12px; }
+    .btn-warning { background: var(--warning); color: #0d1117; font-size: 12px; padding: 6px 12px; }
+    .btn-ghost   { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+
+    .form-actions { margin-top: 18px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    /* ── Preview Box ── */
+    .preview-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-top: 16px;
+      display: none;
+    }
+    .preview-box.show { display: block; }
+    .preview-row { display: flex; gap: 24px; flex-wrap: wrap; }
+    .preview-item { }
+    .preview-item .p-label { font-size: 11px; color: var(--text-muted); }
+    .preview-item .p-value { font-size: 18px; font-weight: 700; }
+    .preview-item .p-value.green { color: var(--accent2); }
+    .preview-item .p-value.yellow { color: var(--warning); }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th {
+      background: var(--surface2);
+      color: var(--text-muted);
+      font-size: 11px; text-transform: uppercase; letter-spacing: .5px;
+      padding: 10px 12px; text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+    tbody tr:hover { background: var(--surface2); }
+    tbody td { padding: 10px 12px; vertical-align: middle; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px; border-radius: 20px;
+      font-size: 11px; font-weight: 600;
+    }
+    .badge-open   { background: rgba(88,166,255,.15); color: var(--accent); border: 1px solid rgba(88,166,255,.3); }
+    .badge-closed { background: rgba(63,185,80,.15);  color: var(--accent2); border: 1px solid rgba(63,185,80,.3); }
+    .badge-expired{ background: rgba(216,153,34,.15); color: var(--warning); border: 1px solid rgba(216,153,34,.3); }
+    .badge-assigned{ background: rgba(248,81,73,.15); color: var(--danger); border: 1px solid rgba(248,81,73,.3); }
+    .text-green { color: var(--accent2); font-weight: 600; }
+    .text-red   { color: var(--danger);  font-weight: 600; }
+    .text-yellow{ color: var(--warning); font-weight: 600; }
+    .text-muted { color: var(--text-muted); }
+
+    /* ── Charts ── */
+    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media(max-width:800px){ .chart-grid { grid-template-columns: 1fr; } }
+    .chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+    .chart-box h3 { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: .5px; }
+
+    /* ── Empty State ── */
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: var(--text-muted);
+    }
+    .empty-state .es-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; }
+
+    /* ── Tooltip ── */
+    .tooltip-wrap { position: relative; display: inline-block; }
+    .tooltip-wrap .tooltip-text {
+      visibility: hidden; opacity: 0;
+      background: #2d333b; color: var(--text);
+      border: 1px solid var(--border);
+      font-size: 12px; padding: 6px 10px;
+      border-radius: 6px; white-space: nowrap;
+      position: absolute; bottom: 125%; left: 50%;
+      transform: translateX(-50%);
+      transition: opacity .2s;
+      z-index: 100;
+    }
+    .tooltip-wrap:hover .tooltip-text { visibility: visible; opacity: 1; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.7); z-index: 200;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px; width: 90%; max-width: 500px;
+      box-shadow: var(--shadow);
+    }
+    .modal h2 { margin-bottom: 16px; font-size: 17px; }
+    .modal-actions { margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* ── Responsive ── */
+    @media(max-width:600px){
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .form-grid { grid-template-columns: 1fr 1fr; }
+      header h1 { font-size: 16px; }
+    }
+
+    /* ── Filter bar ── */
+    .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+    .filter-bar select, .filter-bar input {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); padding: 7px 12px; border-radius: 6px;
+      font-size: 13px; outline: none;
+    }
+    .filter-bar label { font-size: 12px; color: var(--text-muted); }
+
+    /* ── Progress bar ── */
+    .progress-bar-wrap { background: var(--surface2); border-radius: 4px; height: 6px; width: 100%; margin-top: 4px; }
+    .progress-bar { height: 6px; border-radius: 4px; background: var(--accent2); }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Import/Export ── */
+    .data-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">📈</div>
+  <div>
+    <h1>Covered Call Trading Journal</h1>
+    <p>Rendite-Tracking &amp; Portfolio-Analyse</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid" id="kpiGrid">
+    <div class="kpi-card blue">
+      <div class="kpi-label">Gesamtprämien</div>
+      <div class="kpi-value" id="kpiTotal">€ 0,00</div>
+      <div class="kpi-sub">Alle Trades kumuliert</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Realisierter Gewinn</div>
+      <div class="kpi-value" id="kpiRealized">€ 0,00</div>
+      <div class="kpi-sub">Abgelaufen / Geschlossen</div>
+    </div>
+    <div class="kpi-card yellow">
+      <div class="kpi-label">Offene Prämien</div>
+      <div class="kpi-value" id="kpiOpen">€ 0,00</div>
+      <div class="kpi-sub">Noch laufende Calls</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-label">Ø Ann. Rendite</div>
+      <div class="kpi-value" id="kpiAvgAnn">0,00 %</div>
+      <div class="kpi-sub">Über alle Trades</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-label">Anzahl Trades</div>
+      <div class="kpi-value" id="kpiCount">0</div>
+      <div class="kpi-sub" id="kpiCountSub">0 offen · 0 geschlossen</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Trefferquote</div>
+      <div class="kpi-value" id="kpiWinRate">0 %</div>
+      <div class="kpi-sub">Abgelaufen wertlos</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('journal')">📋 Journal</button>
+    <button class="tab-btn" onclick="showTab('neuer-trade')">➕ Neuer Trade</button>
+    <button class="tab-btn" onclick="showTab('charts')">📊 Charts</button>
+    <button class="tab-btn" onclick="showTab('daten')">💾 Daten</button>
+  </div>
+
+  <!-- ── TAB: JOURNAL ── -->
+  <div class="tab-content active" id="tab-journal">
+    <div class="card">
+      <div class="card-title"><span class="icon">📋</span> Alle Covered Calls</div>
+
+      <div class="filter-bar">
+        <label>Filter:</label>
+        <select id="filterStatus" onchange="renderTable()">
+          <option value="">Alle Status</option>
+          <option value="Offen">Offen</option>
+          <option value="Abgelaufen">Abgelaufen</option>
+          <option value="Geschlossen">Geschlossen</option>
+          <option value="Assigned">Assigned</option>
+        </select>
+        <input type="text" id="filterSymbol" placeholder="Symbol suchen…" oninput="renderTable()" style="width:140px">
+        <select id="filterSort" onchange="renderTable()">
+          <option value="date-desc">Neueste zuerst</option>
+          <option value="date-asc">Älteste zuerst</option>
+          <option value="pnl-desc">Höchste Prämie</option>
+          <option value="ann-desc">Höchste ann. Rendite</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table id="tradesTable">
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Datum</th>
+              <th>Kontrakte</th>
+              <th>Strike</th>
+              <th>Exp.</th>
+              <th>DTE</th>
+              <th>Prämie/Kontr.</th>
+              <th>Prämie gesamt</th>
+              <th>Aktienpreis</th>
+              <th>Rendite %</th>
+              <th>Ann. Rendite %</th>
+              <th>Status</th>
+              <th>Rückkauf</th>
+              <th>P&amp;L</th>
+              <th>Notiz</th>
+              <th>Aktion</th>
+            </tr>
+          </thead>
+          <tbody id="tradesBody">
+          </tbody>
+        </table>
+        <div class="empty-state" id="emptyState">
+          <div class="es-icon">📭</div>
+          <p>Noch keine Trades eingetragen.<br>Klicke auf <strong>Neuer Trade</strong> um zu beginnen.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB: NEUER TRADE ── -->
+  <div class="tab-content" id="tab-neuer-trade">
+    <div class="card">
+      <div class="card-title"><span class="icon">➕</span> Neuen Covered Call eintragen</div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Aktien-Symbol *</label>
+          <input type="text" id="fSymbol" placeholder="z.B. AAPL" oninput="this.value=this.value.toUpperCase(); calcPreview()" />
+        </div>
+        <div class="form-group">
+          <label>Eröffnungsdatum *</label>
+          <input type="date" id="fDate" oninput="calcPreview()" />
+        </div>
+        <div class="form-group">
+          <label>Anzahl Kontrakte *</label>
+          <input type="number" id="fContracts" placeholder="1" min="1" step="1" oninput="calcPreview()" />
+          <span class="hint">1 Kontrakt = 100 Aktien</span>
+        </div>
+        <div class="form-group">
+          <label>Strike-Preis ($) *</label>
+          <input type="number" id="fStrike" placeholder="150.00" step="0.01" oninput="calcPreview()" />
+        </div>
+        <div class="form-group">
+          <label>Verfallsdatum *</label>
+          <input type="date" id="fExpiry" oninput="calcPreview()" />
+        </div>
+        <div class="form-group">
+          <label>Prämie pro Aktie ($) *</label>
+          <input type="number" id="fPremium" placeholder="2.50" step="0.01" oninput="calcPreview()" />
+          <span class="hint">Erhaltene Prämie pro Aktie</span>
+        </div>
+        <div class="form-group">
+          <label>Aktueller Aktienpreis ($)</label>
+          <input type="number" id="fStockPrice" placeholder="145.00" step="0.01" oninput="calcPreview()" />
+          <span class="hint">Für Rendite-Berechnung</span>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="fStatus" onchange="toggleCloseFields(); calcPreview()">
+            <option value="Offen">Offen</option>
+            <option value="Abgelaufen">Abgelaufen (wertlos)</option>
+            <option value="Geschlossen">Geschlossen (Rückkauf)</option>
+            <option value="Assigned">Assigned</option>
+          </select>
+        </div>
+        <div class="form-group" id="fBuybackGroup" style="display:none">
+          <label>Rückkaufpreis/Aktie ($)</label>
+          <input type="number" id="fBuyback" placeholder="0.50" step="0.01" oninput="calcPreview()" />
+          <span class="hint">Preis beim Schließen</span>
+        </div>
+        <div class="form-group" style="grid-column: 1/-1">
+          <label>Notiz</label>
+          <input type="text" id="fNote" placeholder="Optionale Notiz zum Trade…" />
+        </div>
+      </div>
+
+      <!-- Live Preview -->
+      <div class="preview-box" id="previewBox">
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:.5px;">Berechnungsvorschau</div>
+        <div class="preview-row">
+          <div class="preview-item">
+            <div class="p-label">Prämie gesamt</div>
+            <div class="p-value green" id="pvTotal">—</div>
+          </div>
+          <div class="preview-item">
+            <div class="p-label">Laufzeit (DTE)</div>
+            <div class="p-value" id="pvDTE">—</div>
+          </div>
+          <div class="preview-item">
+            <div class="p-label">Rendite auf Aktie</div>
+            <div class="p-value yellow" id="pvReturn">—</div>
+          </div>
+          <div class="preview-item">
+            <div class="p-label">Ann. Rendite</div>
+            <div class="p-value green" id="pvAnn">—</div>
+          </div>
+          <div class="preview-item">
+            <div class="p-label">P&amp;L (nach Rückkauf)</div>
+            <div class="p-value" id="pvPnL">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-success" onclick="saveTrade()">✅ Trade speichern</button>
+        <button class="btn btn-ghost" onclick="clearForm()">🔄 Formular leeren</button>
+      </div>
+    </div>
+
+    <!-- Erklärungs-Box -->
+    <div class="card">
+      <div class="card-title"><span class="icon">💡</span> Berechnungsformeln</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div>
+          <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">Rendite auf Aktienpreis</div>
+          <div style="background:var(--surface2); padding:10px 14px; border-radius:6px; font-family:monospace; font-size:13px;">
+            (Prämie/Aktie ÷ Aktienpreis) × 100
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">Annualisierte Rendite</div>
+          <div style="background:var(--surface2); padding:10px 14px; border-radius:6px; font-family:monospace; font-size:13px;">
+            Rendite × (365 ÷ DTE)
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">Prämie gesamt</div>
+          <div style="background:var(--surface2); padding:10px 14px; border-radius:6px; font-family:monospace; font-size:13px;">
+            Prämie/Aktie × 100 × Kontrakte
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">P&amp;L (bei Rückkauf)</div>
+          <div style="background:var(--surface2); padding:10px 14px; border-radius:6px; font-family:monospace; font-size:13px;">
+            (Prämie − Rückkauf) × 100 × Kontrakte
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB: CHARTS ── -->
+  <div class="tab-content" id="tab-charts">
+    <div class="chart-grid">
+      <div class="chart-box">
+        <h3>📈 Kumulierte Prämien über Zeit</h3>
+        <canvas id="chartCumulative" height="220"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>📊 Ann. Rendite pro Trade</h3>
+        <canvas id="chartAnnReturn" height="220"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>🥧 Status-Verteilung</h3>
+        <canvas id="chartStatus" height="220"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>🏆 Top Symbole (Gesamtprämie)</h3>
+        <canvas id="chartSymbols" height="220"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="icon">📅</span> Monatliche Prämien-Übersicht</div>
+      <canvas id="chartMonthly" height="120"></canvas>
+    </div>
+  </div>
+
+  <!-- ── TAB: DATEN ── -->
+  <div class="tab-content" id="tab-daten">
+    <div class="card">
+      <div class="card-title"><span class="icon">💾</span> Datenverwaltung</div>
+      <p style="color:var(--text-muted); margin-bottom:18px; font-size:13px;">
+        Deine Daten werden im Browser-Speicher (localStorage) gesichert. Exportiere regelmäßig als Backup.
+      </p>
+      <div class="data-actions">
+        <button class="btn btn-primary" onclick="exportJSON()">📥 JSON exportieren</button>
+        <button class="btn btn-primary" onclick="exportCSV()">📊 CSV exportieren</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">📤 JSON importieren</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+        <button class="btn btn-danger" onclick="confirmClear()">🗑️ Alle Daten löschen</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="icon">📊</span> Statistik-Übersicht</div>
+      <div id="statsTable" style="font-size:13px;"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal: Trade schließen -->
+<div class="modal-overlay" id="closeModal">
+  <div class="modal">
+    <h2>Trade Status ändern</h2>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Neuer Status</label>
+      <select id="modalStatus">
+        <option value="Offen">Offen</option>
+        <option value="Abgelaufen">Abgelaufen (wertlos)</option>
+        <option value="Geschlossen">Geschlossen (Rückkauf)</option>
+        <option value="Assigned">Assigned</option>
+      </select>
+    </div>
+    <div class="form-group" id="modalBuybackGroup">
+      <label>Rückkaufpreis pro Aktie ($)</label>
+      <input type="number" id="modalBuyback" placeholder="0.50" step="0.01" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Abbrechen</button>
+      <button class="btn btn-success" onclick="applyModalClose()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Löschen bestätigen -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h2>Trade löschen?</h2>
+    <p style="color:var(--text-muted); margin-bottom:8px;">Dieser Trade wird unwiderruflich gelöscht.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('deleteModal').classList.remove('show')">Abbrechen</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+//  DATA LAYER
+// ─────────────────────────────────────────────
+const STORAGE_KEY = 'cc_journal_v2';
+let trades = [];
+let editingId = null;
+let deletingId = null;
+let modalTradeId = null;
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    trades = raw ? JSON.parse(raw) : [];
+  } catch(e) { trades = []; }
+}
+
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(trades));
+}
+
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+}
+
+// ─────────────────────────────────────────────
+//  CALCULATIONS
+// ─────────────────────────────────────────────
+function calcDTE(openDate, expiryDate) {
+  const d1 = new Date(openDate);
+  const d2 = new Date(expiryDate);
+  return Math.max(1, Math.round((d2 - d1) / 86400000));
+}
+
+function calcReturnPct(premium, stockPrice) {
+  if (!stockPrice || stockPrice <= 0) return null;
+  return (premium / stockPrice) * 100;
+}
+
+function calcAnnualizedReturn(returnPct, dte) {
+  if (returnPct === null || dte <= 0) return null;
+  return returnPct * (365 / dte);
+}
+
+function calcPnL(trade) {
+  const grossPremium = trade.premium * 100 * trade.contracts;
+  if (trade.status === 'Abgelaufen') return grossPremium;
+  if (trade.status === 'Geschlossen' && trade.buyback != null) {
+    return (trade.premium - trade.buyback) * 100 * trade.contracts;
+  }
+  if (trade.status === 'Assigned') return grossPremium; // premium kept
+  return null; // open
+}
+
+function enrichTrade(t) {
+  t.dte = calcDTE(t.date, t.expiry);
+  t.totalPremium = t.premium * 100 * t.contracts;
+  t.returnPct = calcReturnPct(t.premium, t.stockPrice);
+  t.annReturn = calcAnnualizedReturn(t.returnPct, t.dte);
+  t.pnl = calcPnL(t);
+  return t;
+}
+
+// ─────────────────────────────────────────────
+//  FORM
+// ─────────────────────────────────────────────
+function setDefaultDate() {
+  const today = new Date().toISOString().split('T')[0];
+  if (!document.getElementById('fDate').value) {
+    document.getElementById('fDate').value = today;
+  }
+}
+
+function toggleCloseFields() {
+  const status = document.getElementById('fStatus').value;
+  document.getElementById('fBuybackGroup').style.display =
+    (status === 'Geschlossen') ? 'flex' : 'none';
+}
+
+function calcPreview() {
+  const premium    = parseFloat(document.getElementById('fPremium').value);
+  const contracts  = parseInt(document.getElementById('fContracts').value) || 0;
+  const stockPrice = parseFloat(document.getElementById('fStockPrice').value);
+  const date       = document.getElementById('fDate').value;
+  const expiry     = document.getElementById('fExpiry').value;
+  const buyback    = parseFloat(document.getElementById('fBuyback').value);
+  const status     = document.getElementById('fStatus').value;
+
+  const box = document.getElementById('previewBox');
+  if (!premium || !contracts || !date || !expiry) { box.classList.remove('show'); return; }
+  box.classList.add('show');
+
+  const dte = calcDTE(date, expiry);
+  const total = premium * 100 * contracts;
+  const ret = calcReturnPct(premium, stockPrice);
+  const ann = calcAnnualizedReturn(ret, dte);
+
+  let pnl = null;
+  if (status === 'Abgelaufen') pnl = total;
+  else if (status === 'Geschlossen' && !isNaN(buyback)) pnl = (premium - buyback) * 100 * contracts;
+
+  document.getElementById('pvTotal').textContent = '$ ' + fmt2(total);
+  document.getElementById('pvDTE').textContent   = dte + ' Tage';
+  document.getElementById('pvReturn').textContent = ret !== null ? fmt2(ret) + ' %' : '— (kein Aktienpreis)';
+  document.getElementById('pvAnn').textContent    = ann !== null ? fmt2(ann) + ' %' : '—';
+
+  const pnlEl = document.getElementById('pvPnL');
+  if (pnl !== null) {
+    pnlEl.textContent = (pnl >= 0 ? '+ ' : '') + '$ ' + fmt2(pnl);
+    pnlEl.className = 'p-value ' + (pnl >= 0 ? 'green' : 'text-red');
+  } else {
+    pnlEl.textContent = 'Offen';
+    pnlEl.className = 'p-value text-muted';
+  }
+}
+
+function clearForm() {
+  ['fSymbol','fDate','fContracts','fStrike','fExpiry','fPremium','fStockPrice','fBuyback','fNote'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('fStatus').value = 'Offen';
+  toggleCloseFields();
+  document.getElementById('previewBox').classList.remove('show');
+  editingId = null;
+  setDefaultDate();
+}
+
+function saveTrade() {
+  const symbol    = document.getElementById('fSymbol').value.trim().toUpperCase();
+  const date      = document.getElementById('fDate').value;
+  const contracts = parseInt(document.getElementById('fContracts').value);
+  const strike    = parseFloat(document.getElementById('fStrike').value);
+  const expiry    = document.getElementById('fExpiry').value;
+  const premium   = parseFloat(document.getElementById('fPremium').value);
+  const stockPrice= parseFloat(document.getElementById('fStockPrice').value) || null;
+  const status    = document.getElementById('fStatus').value;
+  const buyback   = parseFloat(document.getElementById('fBuyback').value) || null;
+  const note      = document.getElementById('fNote').value.trim();
+
+  if (!symbol || !date || !contracts || !strike || !expiry || !premium) {
+    alert('Bitte alle Pflichtfelder (*) ausfüllen.');
+    return;
+  }
+
+  const trade = enrichTrade({
+    id: editingId || generateId(),
+    symbol, date, contracts, strike, expiry, premium,
+    stockPrice, status, buyback, note,
+    createdAt: editingId ? (trades.find(t=>t.id===editingId)||{}).createdAt : new Date().toISOString()
+  });
+
+  if (editingId) {
+    const idx = trades.findIndex(t => t.id === editingId);
+    if (idx !== -1) trades[idx] = trade;
+  } else {
+    trades.push(trade);
+  }
+
+  saveData();
+  clearForm();
+  refresh();
+  showTab('journal');
+  editingId = null;
+}
+
+// ─────────────────────────────────────────────
+//  TABLE
+// ─────────────────────────────────────────────
+function renderTable() {
+  const filterStatus = document.getElementById('filterStatus').value;
+  const filterSymbol = document.getElementById('filterSymbol').value.toUpperCase();
+  const sortVal      = document.getElementById('filterSort').value;
+
+  let data = trades.map(t => enrichTrade({...t}));
+
+  if (filterStatus) data = data.filter(t => t.status === filterStatus);
+  if (filterSymbol) data = data.filter(t => t.symbol.includes(filterSymbol));
+
+  data.sort((a,b) => {
+    if (sortVal === 'date-asc')  return new Date(a.date) - new Date(b.date);
+    if (sortVal === 'date-desc') return new Date(b.date) - new Date(a.date);
+    if (sortVal === 'pnl-desc')  return b.totalPremium - a.totalPremium;
+    if (sortVal === 'ann-desc')  return (b.annReturn||0) - (a.annReturn||0);
+    return 0;
+  });
+
+  const tbody = document.getElementById('tradesBody');
+  const empty = document.getElementById('emptyState');
+
+  if (data.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = data.map(t => {
+    const pnlStr = t.pnl !== null
+      ? `<span class="${t.pnl >= 0 ? 'text-green' : 'text-red'}">${t.pnl >= 0 ? '+' : ''}$${fmt2(t.pnl)}</span>`
+      : '<span class="text-muted">offen</span>';
+
+    const annStr = t.annReturn !== null
+      ? `<span class="${t.annReturn >= 15 ? 'text-green' : t.annReturn >= 8 ? 'text-yellow' : 'text-muted'}">${fmt2(t.annReturn)} %</span>`
+      : '<span class="text-muted">—</span>';
+
+    const retStr = t.returnPct !== null
+      ? `${fmt2(t.returnPct)} %`
+      : '<span class="text-muted">—</span>';
+
+    const buybackStr = t.buyback != null ? `$${fmt2(t.buyback)}` : '—';
+
+    const daysLeft = Math.round((new Date(t.expiry) - new Date()) / 86400000);
+    const daysLeftStr = t.status === 'Offen'
+      ? (daysLeft > 0 ? `<span style="color:var(--accent)">${daysLeft}d</span>` : `<span class="text-red">Exp!</span>`)
+      : `${t.dte}d`;
+
+    return `<tr>
+      <td><strong>${t.symbol}</strong></td>
+      <td>${fmtDate(t.date)}</td>
+      <td>${t.contracts}x</td>
+      <td>$${fmt2(t.strike)}</td>
+      <td>${fmtDate(t.expiry)}</td>
+      <td>${daysLeftStr}</td>
+      <td>$${fmt2(t.premium)}</td>
+      <td><strong>$${fmt2(t.totalPremium)}</strong></td>
+      <td>${t.stockPrice ? '$'+fmt2(t.stockPrice) : '<span class="text-muted">—</span>'}</td>
+      <td>${retStr}</td>
+      <td>${annStr}</td>
+      <td><span class="badge badge-${t.status.toLowerCase().replace(' ','')}">${t.status}</span></td>
+      <td>${buybackStr}</td>
+      <td>${pnlStr}</td>
+      <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-muted)">${t.note||''}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-warning" onclick="editTrade('${t.id}')">✏️</button>
+          <button class="btn btn-ghost" style="font-size:12px;padding:6px 8px" onclick="openCloseModal('${t.id}')">🔄</button>
+          <button class="btn btn-danger" onclick="openDeleteModal('${t.id}')">🗑️</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+//  KPI UPDATE
+// ─────────────────────────────────────────────
+function updateKPIs() {
+  const enriched = trades.map(t => enrichTrade({...t}));
+  const total = enriched.reduce((s,t) => s + t.totalPremium, 0);
+  const realized = enriched.filter(t => t.pnl !== null).reduce((s,t) => s + t.pnl, 0);
+  const openPremium = enriched.filter(t => t.status === 'Offen').reduce((s,t) => s + t.totalPremium, 0);
+  const annReturns = enriched.filter(t => t.annReturn !== null).map(t => t.annReturn);
+  const avgAnn = annReturns.length ? annReturns.reduce((a,b)=>a+b,0)/annReturns.length : 0;
+  const openCount = enriched.filter(t => t.status === 'Offen').length;
+  const closedCount = enriched.filter(t => t.status !== 'Offen').length;
+  const expiredCount = enriched.filter(t => t.status === 'Abgelaufen').length;
+  const winRate = closedCount > 0 ? Math.round(expiredCount / closedCount * 100) : 0;
+
+  document.getElementById('kpiTotal').textContent    = '$ ' + fmt2(total);
+  document.getElementById('kpiRealized').textContent = '$ ' + fmt2(realized);
+  document.getElementById('kpiOpen').textContent     = '$ ' + fmt2(openPremium);
+  document.getElementById('kpiAvgAnn').textContent   = fmt2(avgAnn) + ' %';
+  document.getElementById('kpiCount').textContent    = enriched.length;
+  document.getElementById('kpiCountSub').textContent = `${openCount} offen · ${closedCount} geschlossen`;
+  document.getElementById('kpiWinRate').textContent  = winRate + ' %';
+}
+
+// ─────────────────────────────────────────────
+//  CHARTS
+// ─────────────────────────────────────────────
+let charts = {};
+
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function renderCharts() {
+  const enriched = trades.map(t => enrichTrade({...t})).sort((a,b) => new Date(a.date)-new Date(b.date));
+
+  // 1. Kumulierte Prämien
+  destroyChart('cumulative');
+  const cumLabels = enriched.map(t => fmtDate(t.date) + ' ' + t.symbol);
+  let cumSum = 0;
+  const cumData = enriched.map(t => { cumSum += t.totalPremium; return cumSum; });
+  charts['cumulative'] = new Chart(document.getElementById('chartCumulative'), {
+    type: 'line',
+    data: {
+      labels: cumLabels,
+      datasets: [{
+        label: 'Kumulierte Prämien ($)',
+        data: cumData,
+        borderColor: '#58a6ff',
+        backgroundColor: 'rgba(88,166,255,.1)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 4,
+      }]
+    },
+    options: chartOpts('$')
+  });
+
+  // 2. Ann. Rendite pro Trade
+  destroyChart('annReturn');
+  const annLabels = enriched.map(t => t.symbol + ' ' + fmtDate(t.expiry));
+  const annData   = enriched.map(t => t.annReturn !== null ? parseFloat(fmt2(t.annReturn)) : null);
+  charts['annReturn'] = new Chart(document.getElementById('chartAnnReturn'), {
+    type: 'bar',
+    data: {
+      labels: annLabels,
+      datasets: [{
+        label: 'Ann. Rendite (%)',
+        data: annData,
+        backgroundColor: annData.map(v => v === null ? '#30363d' : v >= 15 ? '#3fb950' : v >= 8 ? '#d29922' : '#58a6ff'),
+        borderRadius: 4,
+      }]
+    },
+    options: chartOpts('%')
+  });
+
+  // 3. Status-Verteilung
+  destroyChart('status');
+  const statusCounts = {};
+  enriched.forEach(t => { statusCounts[t.status] = (statusCounts[t.status]||0)+1; });
+  charts['status'] = new Chart(document.getElementById('chartStatus'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(statusCounts),
+      datasets: [{
+        data: Object.values(statusCounts),
+        backgroundColor: ['#58a6ff','#3fb950','#d29922','#f85149'],
+        borderWidth: 2,
+        borderColor: '#161b22'
+      }]
+    },
+    options: {
+      plugins: { legend: { labels: { color: '#e6edf3', font: { size: 12 } } } },
+      cutout: '60%'
+    }
+  });
+
+  // 4. Top Symbole
+  destroyChart('symbols');
+  const symMap = {};
+  enriched.forEach(t => { symMap[t.symbol] = (symMap[t.symbol]||0) + t.totalPremium; });
+  const symSorted = Object.entries(symMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  charts['symbols'] = new Chart(document.getElementById('chartSymbols'), {
+    type: 'bar',
+    data: {
+      labels: symSorted.map(s=>s[0]),
+      datasets: [{
+        label: 'Gesamtprämie ($)',
+        data: symSorted.map(s=>s[1]),
+        backgroundColor: '#bc8cff',
+        borderRadius: 4,
+      }]
+    },
+    options: { ...chartOpts('$'), indexAxis: 'y' }
+  });
+
+  // 5. Monatliche Prämien
+  destroyChart('monthly');
+  const monthMap = {};
+  enriched.forEach(t => {
+    const m = t.date.slice(0,7);
+    monthMap[m] = (monthMap[m]||0) + t.totalPremium;
+  });
+  const months = Object.keys(monthMap).sort();
+  charts['monthly'] = new Chart(document.getElementById('chartMonthly'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [{
+        label: 'Monatliche Prämien ($)',
+        data: months.map(m=>monthMap[m]),
+        backgroundColor: 'rgba(63,185,80,.7)',
+        borderRadius: 4,
+      }]
+    },
+    options: chartOpts('$')
+  });
+}
+
+function chartOpts(unit) {
+  return {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => unit === '$' ? '$ ' + fmt2(ctx.raw) : fmt2(ctx.raw) + ' %'
+        }
+      }
+    },
+    scales: {
+      x: { ticks: { color: '#8b949e', maxRotation: 45, font:{size:10} }, grid: { color: '#21262d' } },
+      y: { ticks: { color: '#8b949e', font:{size:11} }, grid: { color: '#21262d' } }
+    }
+  };
+}
+
+// ─────────────────────────────────────────────
+//  STATS TABLE
+// ─────────────────────────────────────────────
+function renderStats() {
+  const enriched = trades.map(t => enrichTrade({...t}));
+  if (enriched.length === 0) {
+    document.getElementById('statsTable').innerHTML = '<p style="color:var(--text-muted)">Noch keine Trades vorhanden.</p>';
+    return;
+  }
+
+  const annReturns = enriched.filter(t=>t.annReturn!==null).map(t=>t.annReturn);
+  const pnls = enriched.filter(t=>t.pnl!==null).map(t=>t.pnl);
+  const totalPremium = enriched.reduce((s,t)=>s+t.totalPremium,0);
+  const realizedPnL  = pnls.reduce((a,b)=>a+b,0);
+  const avgAnn = annReturns.length ? annReturns.reduce((a,b)=>a+b,0)/annReturns.length : 0;
+  const maxAnn = annReturns.length ? Math.max(...annReturns) : 0;
+  const minAnn = annReturns.length ? Math.min(...annReturns) : 0;
+  const avgDTE = enriched.reduce((s,t)=>s+t.dte,0)/enriched.length;
+
+  const rows = [
+    ['Anzahl Trades gesamt', enriched.length],
+    ['Davon offen', enriched.filter(t=>t.status==='Offen').length],
+    ['Davon abgelaufen (wertlos)', enriched.filter(t=>t.status==='Abgelaufen').length],
+    ['Davon geschlossen (Rückkauf)', enriched.filter(t=>t.status==='Geschlossen').length],
+    ['Davon Assigned', enriched.filter(t=>t.status==='Assigned').length],
+    ['Gesamtprämien eingenommen', '$ ' + fmt2(totalPremium)],
+    ['Realisierter P&L', '$ ' + fmt2(realizedPnL)],
+    ['Ø Annualisierte Rendite', fmt2(avgAnn) + ' %'],
+    ['Höchste ann. Rendite', fmt2(maxAnn) + ' %'],
+    ['Niedrigste ann. Rendite', fmt2(minAnn) + ' %'],
+    ['Ø Laufzeit (DTE)', Math.round(avgDTE) + ' Tage'],
+  ];
+
+  document.getElementById('statsTable').innerHTML = `
+    <table>
+      <thead><tr><th>Kennzahl</th><th>Wert</th></tr></thead>
+      <tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td><strong>${r[1]}</strong></td></tr>`).join('')}</tbody>
+    </table>`;
+}
+
+// ─────────────────────────────────────────────
+//  EDIT / DELETE / CLOSE MODAL
+// ─────────────────────────────────────────────
+function editTrade(id) {
+  const t = trades.find(x => x.id === id);
+  if (!t) return;
+  editingId = id;
+  document.getElementById('fSymbol').value    = t.symbol;
+  document.getElementById('fDate').value      = t.date;
+  document.getElementById('fContracts').value = t.contracts;
+  document.getElementById('fStrike').value    = t.strike;
+  document.getElementById('fExpiry').value    = t.expiry;
+  document.getElementById('fPremium').value   = t.premium;
+  document.getElementById('fStockPrice').value= t.stockPrice || '';
+  document.getElementById('fStatus').value    = t.status;
+  document.getElementById('fBuyback').value   = t.buyback || '';
+  document.getElementById('fNote').value      = t.note || '';
+  toggleCloseFields();
+  calcPreview();
+  showTab('neuer-trade');
+}
+
+function openDeleteModal(id) {
+  deletingId = id;
+  document.getElementById('deleteModal').classList.add('show');
+}
+
+function confirmDelete() {
+  trades = trades.filter(t => t.id !== deletingId);
+  saveData(); refresh();
+  document.getElementById('deleteModal').classList.remove('show');
+}
+
+function openCloseModal(id) {
+  modalTradeId = id;
+  const t = trades.find(x => x.id === id);
+  if (!t) return;
+  document.getElementById('modalStatus').value  = t.status;
+  document.getElementById('modalBuyback').value = t.buyback || '';
+  document.getElementById('closeModal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('closeModal').classList.remove('show');
+}
+
+function applyModalClose() {
+  const t = trades.find(x => x.id === modalTradeId);
+  if (!t) return;
+  t.status  = document.getElementById('modalStatus').value;
+  t.buyback = parseFloat(document.getElementById('modalBuyback').value) || null;
+  enrichTrade(t);
+  saveData(); refresh();
+  closeModal();
+}
+
+function confirmClear() {
+  if (confirm('Wirklich ALLE Trades löschen? Diese Aktion kann nicht rückgängig gemacht werden!')) {
+    trades = [];
+    saveData(); refresh();
+  }
+}
+
+// ─────────────────────────────────────────────
+//  IMPORT / EXPORT
+// ─────────────────────────────────────────────
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(trades, null, 2)], {type:'application/json'});
+  download(blob, 'covered_calls_' + today() + '.json');
+}
+
+function exportCSV() {
+  const enriched = trades.map(t => enrichTrade({...t}));
+  const headers = ['ID','Symbol','Datum','Kontrakte','Strike','Verfall','DTE','Prämie/Aktie','Prämie gesamt','Aktienpreis','Rendite%','Ann.Rendite%','Status','Rückkauf','P&L','Notiz'];
+  const rows = enriched.map(t => [
+    t.id, t.symbol, t.date, t.contracts, t.strike, t.expiry, t.dte,
+    t.premium, fmt2(t.totalPremium), t.stockPrice||'', fmt2(t.returnPct)||'', fmt2(t.annReturn)||'',
+    t.status, t.buyback||'', t.pnl!==null?fmt2(t.pnl):'offen', t.note||''
+  ]);
+  const csv = [headers, ...rows].map(r => r.join(';')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+  download(blob, 'covered_calls_' + today() + '.csv');
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data)) throw new Error('Ungültiges Format');
+      if (confirm(`${data.length} Trades importieren? Bestehende Daten werden überschrieben.`)) {
+        trades = data;
+        saveData(); refresh();
+        alert('Import erfolgreich!');
+      }
+    } catch(err) {
+      alert('Fehler beim Import: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function download(blob, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+
+function today() { return new Date().toISOString().split('T')[0]; }
+
+// ─────────────────────────────────────────────
+//  TABS
+// ─────────────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  const idx = ['journal','neuer-trade','charts','daten'].indexOf(id);
+  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+  if (id === 'charts') renderCharts();
+  if (id === 'daten')  renderStats();
+}
+
+// ─────────────────────────────────────────────
+//  HELPERS
+// ─────────────────────────────────────────────
+function fmt2(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return parseFloat(n).toFixed(2).replace('.', ',');
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  const [y,m,day] = d.split('-');
+  return `${day}.${m}.${y}`;
+}
+
+// ─────────────────────────────────────────────
+//  REFRESH ALL
+// ─────────────────────────────────────────────
+function refresh() {
+  updateKPIs();
+  renderTable();
+}
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+loadData();
+setDefaultDate();
+toggleCloseFields();
+refresh();
+
+// Demo-Daten wenn leer
+if (trades.length === 0) {
+  const demo = [
+    { id: generateId(), symbol:'AAPL', date:'2026-01-15', contracts:2, strike:230, expiry:'2026-02-21', premium:2.80, stockPrice:225, status:'Abgelaufen', buyback:null, note:'Erster Trade' },
+    { id: generateId(), symbol:'MSFT', date:'2026-01-20', contracts:1, strike:420, expiry:'2026-02-28', premium:4.50, stockPrice:415, status:'Geschlossen', buyback:1.20, note:'Früh geschlossen' },
+    { id: generateId(), symbol:'NVDA', date:'2026-02-03', contracts:1, strike:140, expiry:'2026-03-21', premium:3.20, stockPrice:135, status:'Offen', buyback:null, note:'Läuft noch' },
+    { id: generateId(), symbol:'AAPL', date:'2026-02-10', contracts:2, strike:235, expiry:'2026-03-28', premium:2.10, stockPrice:228, status:'Offen', buyback:null, note:'' },
+  ];
+  demo.forEach(t => enrichTrade(t));
+  trades = demo;
+  saveData();
+  refresh();
+}
+</script>
+</body>
+</html>
